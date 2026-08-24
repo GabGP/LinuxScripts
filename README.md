@@ -47,10 +47,20 @@ cd LinuxScripts
 
 ### Prerequisites
 
-```bash
-sudo dnf install file tar unzip sed desktop-file-utils curl
-chmod +x scripts/*.sh setup.sh
-```
+1. **System packages:**
+   ```bash
+   sudo dnf install file tar unzip sed desktop-file-utils curl
+   chmod +x scripts/*.sh setup.sh
+   ```
+
+2. **Font: [MesloLGS Nerd Font](https://github.com/ryanoasis/nerd-fonts/releases/latest/download/Meslo.tar.xz)** (Recommended for Kitty & Starship):
+   ```bash
+   mkdir -p ~/.local/share/fonts/Meslo
+   curl -fLo /tmp/Meslo.tar.xz https://github.com/ryanoasis/nerd-fonts/releases/latest/download/Meslo.tar.xz
+   tar -xf /tmp/Meslo.tar.xz -C ~/.local/share/fonts/Meslo/
+   rm -f /tmp/Meslo.tar.xz
+   fc-cache -f ~/.local/share/fonts/Meslo
+   ```
 
 ---
 
@@ -76,7 +86,7 @@ Interactive installer that extracts pre-compiled archive packages into `/opt`, c
 
 | Configuration | Destination | Features |
 | :--- | :--- | :--- |
-| **`config/kitty/kitty.conf`** | `~/.config/kitty/kitty.conf` | `Cascadia Code NF` font family, smooth scaling, and theme integration. |
+| **`config/kitty/kitty.conf`** | `~/.config/kitty/kitty.conf` | `MesloLGS Nerd Font` font family, clean optical prompt alignment, and theme integration. |
 | **`config/starship/starship.toml`** | `~/.config/starship.toml` | **Gruvbox-Rainbow** continuous capsule layout with **Kokiri by Chuck** color palette. |
 | **`config/bash/.bashrc`** | `~/.bashrc` | User environment variables, path exports, and Starship shell hook. |
 
