@@ -1,0 +1,537 @@
+"$schema" = 'https://starship.rs/config-schema.json'
+
+# ==============================================================================
+#  Active Palette & Prompt Layout (Root Settings)
+# ==============================================================================
+palette = 'kokiri'
+
+format = """
+[](color_bg1)\
+$os\
+$username\
+$hostname\
+$localip\
+$shlvl\
+$shell\
+$sudo\
+[](bg:color_bg2 fg:color_bg1)\
+$directory\
+[](fg:color_bg2 bg:color_bg3)\
+$vcsh\
+$fossil_branch\
+$fossil_metrics\
+$git_branch\
+$git_commit\
+$git_state\
+$git_metrics\
+$git_status\
+$hg_branch\
+$hg_state\
+$pijul_channel\
+[](fg:color_bg3 bg:color_bg4)\
+$package\
+$c\
+$cmake\
+$cobol\
+$cpp\
+$daml\
+$dart\
+$deno\
+$dotnet\
+$elixir\
+$elm\
+$erlang\
+$fennel\
+$fortran\
+$gleam\
+$golang\
+$gradle\
+$haskell\
+$haxe\
+$helm\
+$java\
+$julia\
+$kotlin\
+$lua\
+$maven\
+$mojo\
+$nim\
+$nodejs\
+$bun\
+$ocaml\
+$odin\
+$opa\
+$perl\
+$php\
+$pulumi\
+$purescript\
+$python\
+$quarto\
+$raku\
+$rlang\
+$red\
+$ruby\
+$rust\
+$scala\
+$solidity\
+$swift\
+$terraform\
+$typst\
+$vlang\
+$xmake\
+$zig\
+$buf\
+[](fg:color_bg4 bg:color_bg5)\
+$container\
+$docker_context\
+$kubernetes\
+$singularity\
+$guix_shell\
+$nix_shell\
+$conda\
+$pixi\
+$meson\
+$spack\
+$direnv\
+$mise\
+$env_var\
+$crystal\
+$custom\
+$aws\
+$gcloud\
+$openstack\
+$azure\
+$nats\
+$netns\
+$vagrant\
+[](fg:color_bg5 bg:color_bg6)\
+$memory_usage\
+$battery\
+$jobs\
+$time\
+$cmd_duration\
+$status\
+[ ](fg:color_bg6)\
+$line_break$character"""
+
+# ==============================================================================
+#  Standardized Theme Palette (Kokiri by Chuck)
+#  To change themes in the future, ONLY edit the 8 hex codes below!
+# ==============================================================================
+[palettes.kokiri]
+color_fg0    = '#1a1005' # Deep Dark Espresso (High-contrast text)
+color_bg1    = '#b8860b' # Kokiri color1: Dark Gold (Segment 1: OS, User, Host)
+color_bg2    = '#a07838' # Kokiri color11: Bright Amber (Segment 2: Directory)
+color_bg3    = '#4a7a7a' # Kokiri color6: Forest Teal (Segment 3: Git & VCS)
+color_bg4    = '#4a6a8a' # Kokiri color4: Slate Blue (Segment 4: Languages & Tools)
+color_bg5    = '#7a5a7a' # Kokiri color5: Plum Purple (Segment 5: Containers & Cloud)
+color_bg6    = '#4a7a4a' # Kokiri color2: Forest Green (Segment 6: Time & Diagnostics)
+color_accent = '#d4a420' # Kokiri color9: Bright Gold (Accent: Duration & Errors)
+
+# ------------------------------------------------------------------------------
+# 1. System, User & Host Modules (Segment 1: color_bg1)
+# ------------------------------------------------------------------------------
+[os]
+disabled = false
+style = "bold fg:color_fg0 bg:color_bg1"
+format = "[ $symbol]($style)"
+
+[os.symbols]
+Windows = "󰍲"
+Ubuntu = "󰕈"
+SUSE = ""
+Raspbian = "󰐿"
+Mint = "󰣭"
+Macos = "󰀵"
+Manjaro = ""
+Linux = "󰌽"
+Gentoo = "󰣨"
+Fedora = "󰣛"
+Alpine = ""
+Amazon = "󉰰"
+Android = ""
+AOSC = ""
+Arch = "󰣇"
+Artix = "󰣇"
+EndeavourOS = ""
+CentOS = ""
+Debian = "󰣚"
+Redhat = "󱄛"
+RedHatEnterprise = "󱄛"
+Pop = ""
+
+[username]
+show_always = true
+style_user = "bold fg:color_fg0 bg:color_bg1"
+style_root = "bold fg:color_fg0 bg:color_bg1"
+format = "[ $user ]($style)"
+
+[hostname]
+ssh_only = true
+style = "bold fg:color_fg0 bg:color_bg1"
+format = "[ @$hostname ]($style)"
+
+[sudo]
+disabled = false
+style = "bold fg:color_fg0 bg:color_bg1"
+format = "[ 󰌆 ]($style)"
+
+[localip]
+ssh_only = true
+style = "bold fg:color_fg0 bg:color_bg1"
+format = "[ 󰩟 $localipv4 ]($style)"
+
+[shlvl]
+style = "bold fg:color_fg0 bg:color_bg1"
+format = "[ 󱆃 $shlvl ]($style)"
+
+# ------------------------------------------------------------------------------
+# 2. Directory Module (Segment 2: color_bg2)
+# ------------------------------------------------------------------------------
+[directory]
+style = "bold fg:color_fg0 bg:color_bg2"
+format = "[ $path ]($style)"
+truncation_length = 3
+truncation_symbol = "…/"
+
+[directory.substitutions]
+"Documents" = "󰈙 "
+"Downloads" = " "
+"Music" = "󰝚 "
+"Pictures" = " "
+"Developer" = "󰲋 "
+
+# ------------------------------------------------------------------------------
+# 3. Version Control Modules (Segment 3: color_bg3)
+# ------------------------------------------------------------------------------
+[git_branch]
+symbol = ""
+style = "bold fg:color_fg0 bg:color_bg3"
+format = '[[ $symbol $branch ](bold fg:color_fg0 bg:color_bg3)]($style)'
+
+[git_status]
+style = "bold fg:color_fg0 bg:color_bg3"
+format = '[[ ($all_status$ahead_behind) ](bold fg:color_fg0 bg:color_bg3)]($style)'
+
+[git_state]
+style = "bold fg:color_fg0 bg:color_bg3"
+format = '[[ ($state( $progress_current/$progress_total)) ](bold fg:color_fg0 bg:color_bg3)]($style)'
+
+[git_metrics]
+added_style = "bold fg:color_fg0 bg:color_bg3"
+deleted_style = "bold fg:color_fg0 bg:color_bg3"
+format = '([ +$added ]($added_style))([ -$deleted ]($deleted_style))'
+
+[hg_branch]
+symbol = ""
+style = "bold fg:color_fg0 bg:color_bg3"
+format = '[[ $symbol $branch ](bold fg:color_fg0 bg:color_bg3)]($style)'
+
+# ------------------------------------------------------------------------------
+# 4. Programming Languages & Tools (Segment 4: color_bg4)
+# ------------------------------------------------------------------------------
+[c]
+symbol = ""
+style = "bold fg:color_fg0 bg:color_bg4"
+format = '[[ $symbol( $version) ](bold fg:color_fg0 bg:color_bg4)]($style)'
+
+[cmake]
+symbol = ""
+style = "bold fg:color_fg0 bg:color_bg4"
+format = '[[ $symbol( $version) ](bold fg:color_fg0 bg:color_bg4)]($style)'
+
+[cpp]
+symbol = ""
+style = "bold fg:color_fg0 bg:color_bg4"
+format = '[[ $symbol( $version) ](bold fg:color_fg0 bg:color_bg4)]($style)'
+
+[rust]
+symbol = ""
+style = "bold fg:color_fg0 bg:color_bg4"
+format = '[[ $symbol( $version) ](bold fg:color_fg0 bg:color_bg4)]($style)'
+
+[python]
+symbol = ""
+style = "bold fg:color_fg0 bg:color_bg4"
+format = '[[ $symbol( $version) ](bold fg:color_fg0 bg:color_bg4)]($style)'
+
+[golang]
+symbol = ""
+style = "bold fg:color_fg0 bg:color_bg4"
+format = '[[ $symbol( $version) ](bold fg:color_fg0 bg:color_bg4)]($style)'
+
+[nodejs]
+symbol = ""
+style = "bold fg:color_fg0 bg:color_bg4"
+format = '[[ $symbol( $version) ](bold fg:color_fg0 bg:color_bg4)]($style)'
+
+[bun]
+symbol = ""
+style = "bold fg:color_fg0 bg:color_bg4"
+format = '[[ $symbol( $version) ](bold fg:color_fg0 bg:color_bg4)]($style)'
+
+[deno]
+symbol = ""
+style = "bold fg:color_fg0 bg:color_bg4"
+format = '[[ $symbol( $version) ](bold fg:color_fg0 bg:color_bg4)]($style)'
+
+[dotnet]
+symbol = "󰌛"
+style = "bold fg:color_fg0 bg:color_bg4"
+format = '[[ $symbol( $version) ](bold fg:color_fg0 bg:color_bg4)]($style)'
+
+[java]
+symbol = ""
+style = "bold fg:color_fg0 bg:color_bg4"
+format = '[[ $symbol( $version) ](bold fg:color_fg0 bg:color_bg4)]($style)'
+
+[kotlin]
+symbol = ""
+style = "bold fg:color_fg0 bg:color_bg4"
+format = '[[ $symbol( $version) ](bold fg:color_fg0 bg:color_bg4)]($style)'
+
+[scala]
+symbol = ""
+style = "bold fg:color_fg0 bg:color_bg4"
+format = '[[ $symbol( $version) ](bold fg:color_fg0 bg:color_bg4)]($style)'
+
+[gradle]
+symbol = ""
+style = "bold fg:color_fg0 bg:color_bg4"
+format = '[[ $symbol( $version) ](bold fg:color_fg0 bg:color_bg4)]($style)'
+
+[maven]
+symbol = ""
+style = "bold fg:color_fg0 bg:color_bg4"
+format = '[[ $symbol( $version) ](bold fg:color_fg0 bg:color_bg4)]($style)'
+
+[lua]
+symbol = ""
+style = "bold fg:color_fg0 bg:color_bg4"
+format = '[[ $symbol( $version) ](bold fg:color_fg0 bg:color_bg4)]($style)'
+
+[php]
+symbol = ""
+style = "bold fg:color_fg0 bg:color_bg4"
+format = '[[ $symbol( $version) ](bold fg:color_fg0 bg:color_bg4)]($style)'
+
+[ruby]
+symbol = ""
+style = "bold fg:color_fg0 bg:color_bg4"
+format = '[[ $symbol( $version) ](bold fg:color_fg0 bg:color_bg4)]($style)'
+
+[swift]
+symbol = ""
+style = "bold fg:color_fg0 bg:color_bg4"
+format = '[[ $symbol( $version) ](bold fg:color_fg0 bg:color_bg4)]($style)'
+
+[zig]
+symbol = ""
+style = "bold fg:color_fg0 bg:color_bg4"
+format = '[[ $symbol( $version) ](bold fg:color_fg0 bg:color_bg4)]($style)'
+
+[dart]
+symbol = ""
+style = "bold fg:color_fg0 bg:color_bg4"
+format = '[[ $symbol( $version) ](bold fg:color_fg0 bg:color_bg4)]($style)'
+
+[elixir]
+symbol = ""
+style = "bold fg:color_fg0 bg:color_bg4"
+format = '[[ $symbol( $version) ](bold fg:color_fg0 bg:color_bg4)]($style)'
+
+[elm]
+symbol = ""
+style = "bold fg:color_fg0 bg:color_bg4"
+format = '[[ $symbol( $version) ](bold fg:color_fg0 bg:color_bg4)]($style)'
+
+[erlang]
+symbol = ""
+style = "bold fg:color_fg0 bg:color_bg4"
+format = '[[ $symbol( $version) ](bold fg:color_fg0 bg:color_bg4)]($style)'
+
+[gleam]
+symbol = ""
+style = "bold fg:color_fg0 bg:color_bg4"
+format = '[[ $symbol( $version) ](bold fg:color_fg0 bg:color_bg4)]($style)'
+
+[haskell]
+symbol = ""
+style = "bold fg:color_fg0 bg:color_bg4"
+format = '[[ $symbol( $version) ](bold fg:color_fg0 bg:color_bg4)]($style)'
+
+[haxe]
+symbol = ""
+style = "bold fg:color_fg0 bg:color_bg4"
+format = '[[ $symbol( $version) ](bold fg:color_fg0 bg:color_bg4)]($style)'
+
+[julia]
+symbol = ""
+style = "bold fg:color_fg0 bg:color_bg4"
+format = '[[ $symbol( $version) ](bold fg:color_fg0 bg:color_bg4)]($style)'
+
+[nim]
+symbol = ""
+style = "bold fg:color_fg0 bg:color_bg4"
+format = '[[ $symbol( $version) ](bold fg:color_fg0 bg:color_bg4)]($style)'
+
+[ocaml]
+symbol = ""
+style = "bold fg:color_fg0 bg:color_bg4"
+format = '[[ $symbol( $version) ](bold fg:color_fg0 bg:color_bg4)]($style)'
+
+[odin]
+symbol = "󰟢"
+style = "bold fg:color_fg0 bg:color_bg4"
+format = '[[ $symbol( $version) ](bold fg:color_fg0 bg:color_bg4)]($style)'
+
+[perl]
+symbol = ""
+style = "bold fg:color_fg0 bg:color_bg4"
+format = '[[ $symbol( $version) ](bold fg:color_fg0 bg:color_bg4)]($style)'
+
+[raku]
+symbol = ""
+style = "bold fg:color_fg0 bg:color_bg4"
+format = '[[ $symbol( $version) ](bold fg:color_fg0 bg:color_bg4)]($style)'
+
+[rlang]
+symbol = "󰟔"
+style = "bold fg:color_fg0 bg:color_bg4"
+format = '[[ $symbol( $version) ](bold fg:color_fg0 bg:color_bg4)]($style)'
+
+[terraform]
+symbol = "󱁢"
+style = "bold fg:color_fg0 bg:color_bg4"
+format = '[[ $symbol( $version) ](bold fg:color_fg0 bg:color_bg4)]($style)'
+
+[typst]
+symbol = ""
+style = "bold fg:color_fg0 bg:color_bg4"
+format = '[[ $symbol( $version) ](bold fg:color_fg0 bg:color_bg4)]($style)'
+
+[solidity]
+symbol = ""
+style = "bold fg:color_fg0 bg:color_bg4"
+format = '[[ $symbol( $version) ](bold fg:color_fg0 bg:color_bg4)]($style)'
+
+[package]
+symbol = "󰏗"
+style = "bold fg:color_fg0 bg:color_bg4"
+format = '[[ $symbol( $version) ](bold fg:color_fg0 bg:color_bg4)]($style)'
+
+# ------------------------------------------------------------------------------
+# 5. Containers, Virtual Environments & Cloud (Segment 5: color_bg5)
+# ------------------------------------------------------------------------------
+[container]
+symbol = "⬢"
+style = "bold fg:color_fg0 bg:color_bg5"
+format = '[[ $symbol $name ](bold fg:color_fg0 bg:color_bg5)]($style)'
+
+[docker_context]
+symbol = ""
+style = "bold fg:color_fg0 bg:color_bg5"
+format = '[[ $symbol( $context) ](bold fg:color_fg0 bg:color_bg5)]($style)'
+
+[kubernetes]
+symbol = "󱃾"
+style = "bold fg:color_fg0 bg:color_bg5"
+format = '[[ $symbol( $context) ](bold fg:color_fg0 bg:color_bg5)]($style)'
+disabled = false
+
+[singularity]
+symbol = "󰨊"
+style = "bold fg:color_fg0 bg:color_bg5"
+format = '[[ $symbol( $name) ](bold fg:color_fg0 bg:color_bg5)]($style)'
+
+[guix_shell]
+symbol = ""
+style = "bold fg:color_fg0 bg:color_bg5"
+format = '[[ $symbol( $name) ](bold fg:color_fg0 bg:color_bg5)]($style)'
+
+[nix_shell]
+symbol = ""
+style = "bold fg:color_fg0 bg:color_bg5"
+format = '[[ $symbol( $state) ](bold fg:color_fg0 bg:color_bg5)]($style)'
+
+[conda]
+symbol = ""
+style = "bold fg:color_fg0 bg:color_bg5"
+format = '[[ $symbol( $environment) ](bold fg:color_fg0 bg:color_bg5)]($style)'
+
+[pixi]
+symbol = "󰞌"
+style = "bold fg:color_fg0 bg:color_bg5"
+format = '[[ $symbol( $environment) ](bold fg:color_fg0 bg:color_bg5)]($style)'
+
+[direnv]
+symbol = "󰌪"
+style = "bold fg:color_fg0 bg:color_bg5"
+format = '[[ $symbol( $loaded) ](bold fg:color_fg0 bg:color_bg5)]($style)'
+
+[mise]
+symbol = "󰒋"
+style = "bold fg:color_fg0 bg:color_bg5"
+format = '[[ $symbol( $version) ](bold fg:color_fg0 bg:color_bg5)]($style)'
+
+[aws]
+symbol = ""
+style = "bold fg:color_fg0 bg:color_bg5"
+format = '[[ $symbol( $profile) ](bold fg:color_fg0 bg:color_bg5)]($style)'
+
+[gcloud]
+symbol = "󱇶"
+style = "bold fg:color_fg0 bg:color_bg5"
+format = '[[ $symbol( $account) ](bold fg:color_fg0 bg:color_bg5)]($style)'
+
+[azure]
+symbol = "󰠅"
+style = "bold fg:color_fg0 bg:color_bg5"
+format = '[[ $symbol( $subscription) ](bold fg:color_fg0 bg:color_bg5)]($style)'
+
+# ------------------------------------------------------------------------------
+# 6. Diagnostics, System & Time (Segment 6: color_bg6)
+# ------------------------------------------------------------------------------
+[battery]
+full_symbol = "󰁹"
+charging_symbol = "󰂄"
+discharging_symbol = "󰂃"
+format = '[[ $symbol $percentage ](bold fg:color_fg0 bg:color_bg6)]'
+
+[memory_usage]
+symbol = "󰍛"
+style = "bold fg:color_fg0 bg:color_bg6"
+format = '[[ $symbol $ram ](bold fg:color_fg0 bg:color_bg6)]($style)'
+
+[jobs]
+symbol = "󰜎"
+style = "bold fg:color_fg0 bg:color_bg6"
+format = '[[ $symbol $number ](bold fg:color_fg0 bg:color_bg6)]($style)'
+
+[time]
+disabled = false
+time_format = "%R"
+style = "bold fg:color_fg0 bg:color_bg6"
+format = '[[  $time ](bold fg:color_fg0 bg:color_bg6)]($style)'
+
+[cmd_duration]
+min_time = 2_000
+style = "bold fg:color_accent bg:color_bg6"
+format = '[[ 󱎫 $duration ](bold fg:color_accent bg:color_bg6)]($style)'
+
+[status]
+disabled = false
+style = "bold fg:color_accent bg:color_bg6"
+format = '[[ ✖ $status ](bold fg:color_accent bg:color_bg6)]($style)'
+
+# ------------------------------------------------------------------------------
+# 7. Prompt Character
+# ------------------------------------------------------------------------------
+[line_break]
+disabled = false
+
+[character]
+disabled = false
+success_symbol = '[](bold fg:color_bg6)'
+error_symbol = '[](bold fg:color_accent)'
+vimcmd_symbol = '[](bold fg:color_bg6)'
