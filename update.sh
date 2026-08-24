@@ -2,7 +2,7 @@
 
 # ==========================================================
 # Fedora & Development Tools Update Script
-# Updates: DNF, Flatpak, AGY, Rustup
+# Updates: DNF, Flatpak, Starship, AGY, Rustup
 # ==========================================================
 
 set -uo pipefail
@@ -84,7 +84,29 @@ else
     print_warning "flatpak command not found. Skipping Flatpak update."
 fi
 
-# 3. Update Antigravity CLI (AGY)
+# 3. Update Starship Prompt
+print_step "Updating Starship Prompt..."
+if command -v starship &>/dev/null; then
+    if [ "${EUID}" -eq 0 ]; then
+        if curl -sS https://starship.rs/install.sh | sh -s -- -y; then
+            print_success "Starship prompt updated successfully."
+        else
+            print_error "Failed to update Starship prompt."
+            FAILED_UPDATES+=("Starship prompt")
+        fi
+    else
+        if curl -sS https://starship.rs/install.sh | sudo sh -s -- -y; then
+            print_success "Starship prompt updated successfully."
+        else
+            print_error "Failed to update Starship prompt."
+            FAILED_UPDATES+=("Starship prompt")
+        fi
+    fi
+else
+    print_warning "starship command not found. Skipping Starship update."
+fi
+
+# 4. Update Antigravity CLI (AGY)
 print_step "Updating Antigravity CLI (AGY)..."
 if command -v agy &>/dev/null; then
     if agy update; then
@@ -97,7 +119,7 @@ else
     print_warning "agy command not found. Skipping AGY update."
 fi
 
-# 4. Update Rust toolchains (Rustup)
+# 5. Update Rust toolchains (Rustup)
 print_step "Updating Rust toolchains (Rustup)..."
 if command -v rustup &>/dev/null; then
     if rustup update; then
