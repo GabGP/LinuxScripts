@@ -2,7 +2,7 @@
 
 # ==========================================================
 # Fedora & Development Tools Update Checker
-# Checks for available updates: DNF, Flatpak, AGY, Rustup
+# Checks for available updates: DNF, Flatpak, Starship, AGY, Rustup
 # (Read-only: Does NOT install or modify any packages)
 # ==========================================================
 
@@ -81,7 +81,27 @@ else
     print_warning "flatpak command not found. Skipping Flatpak check."
 fi
 
-# 3. Check Antigravity CLI (AGY)
+# 3. Check Starship Prompt
+print_step "Checking Starship prompt..."
+if command -v starship &>/dev/null; then
+    current_starship_version=$(starship --version 2>/dev/null | head -n 1 | awk '{print $2}')
+    latest_starship_version=$(curl -sI https://github.com/starship/starship/releases/latest 2>/dev/null | grep -i "^location:" | sed -E 's/.*tag\/v?([0-9.]+).*/\1/' | tr -d '\r\n')
+
+    if [ -n "${latest_starship_version}" ]; then
+        if [ "${current_starship_version}" != "${latest_starship_version}" ]; then
+            print_warning "Update available for Starship prompt: ${current_starship_version} -> ${latest_starship_version}"
+            UPDATES_AVAILABLE=1
+        else
+            print_success "Starship prompt is up to date (version: ${current_starship_version})."
+        fi
+    else
+        print_warning "Could not check latest Starship version (network/offline). Current: ${current_starship_version}"
+    fi
+else
+    print_warning "starship command not found. Skipping Starship check."
+fi
+
+# 4. Check Antigravity CLI (AGY)
 print_step "Checking Antigravity CLI (AGY)..."
 if command -v agy &>/dev/null; then
     current_agy_version=$(agy --version 2>/dev/null || echo "unknown")
@@ -91,7 +111,7 @@ else
     print_warning "agy command not found. Skipping AGY check."
 fi
 
-# 4. Check Rust toolchains (Rustup)
+# 5. Check Rust toolchains (Rustup)
 print_step "Checking Rust toolchains (Rustup)..."
 if command -v rustup &>/dev/null; then
     rustup_output=""
