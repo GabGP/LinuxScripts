@@ -5,7 +5,7 @@
 # Updates: DNF, Flatpak, AGY, Rustup
 # ==========================================================
 
-set -euo pipefail
+set -uo pipefail
 
 # ANSI color codes
 BOLD="\033[1m"
@@ -15,6 +15,8 @@ YELLOW="\033[0;33m"
 CYAN="\033[0;36m"
 RED="\033[0;31m"
 NC="\033[0m" # No Color
+
+FAILED_UPDATES=()
 
 print_step() {
     echo -e "\n${BOLD}${BLUE}==>${NC} ${BOLD}$1${NC}"
@@ -51,11 +53,20 @@ fi
 print_step "Updating Fedora packages (DNF)..."
 if command -v dnf &>/dev/null; then
     if [ "${EUID}" -eq 0 ]; then
-        dnf upgrade --refresh -y
+        if dnf upgrade --refresh -y; then
+            print_success "Fedora packages (DNF) updated successfully."
+        else
+            print_error "Failed to update Fedora packages (DNF)."
+            FAILED_UPDATES+=("Fedora packages (DNF)")
+        fi
     else
-        sudo dnf upgrade --refresh -y
+        if sudo dnf upgrade --refresh -y; then
+            print_success "Fedora packages (DNF) updated successfully."
+        else
+            print_error "Failed to update Fedora packages (DNF)."
+            FAILED_UPDATES+=("Fedora packages (DNF)")
+        fi
     fi
-    print_success "Fedora packages (DNF) updated successfully."
 else
     print_warning "dnf command not found. Skipping DNF update."
 fi
@@ -63,8 +74,12 @@ fi
 # 2. Update Flatpak packages
 print_step "Updating Flatpak packages..."
 if command -v flatpak &>/dev/null; then
-    flatpak update -y
-    print_success "Flatpak packages updated successfully."
+    if flatpak update -y; then
+        print_success "Flatpak packages updated successfully."
+    else
+        print_error "Failed to update Flatpak packages."
+        FAILED_UPDATES+=("Flatpak packages")
+    fi
 else
     print_warning "flatpak command not found. Skipping Flatpak update."
 fi
@@ -72,8 +87,12 @@ fi
 # 3. Update Antigravity CLI (AGY)
 print_step "Updating Antigravity CLI (AGY)..."
 if command -v agy &>/dev/null; then
-    agy update
-    print_success "Antigravity CLI (AGY) updated successfully."
+    if agy update; then
+        print_success "Antigravity CLI (AGY) updated successfully."
+    else
+        print_error "Failed to update Antigravity CLI (AGY)."
+        FAILED_UPDATES+=("Antigravity CLI (AGY)")
+    fi
 else
     print_warning "agy command not found. Skipping AGY update."
 fi
@@ -81,13 +100,27 @@ fi
 # 4. Update Rust toolchains (Rustup)
 print_step "Updating Rust toolchains (Rustup)..."
 if command -v rustup &>/dev/null; then
-    rustup update
-    print_success "Rust toolchains (Rustup) updated successfully."
+    if rustup update; then
+        print_success "Rust toolchains (Rustup) updated successfully."
+    else
+        print_error "Failed to update Rust toolchains (Rustup)."
+        FAILED_UPDATES+=("Rust toolchains (Rustup)")
+    fi
 else
     print_warning "rustup command not found. Skipping Rustup update."
 fi
 
 # Summary Banner
-echo -e "\n${BOLD}${GREEN}==========================================================${NC}"
-echo -e "${BOLD}${GREEN}  All system and tool updates complete!                   ${NC}"
-echo -e "${BOLD}${GREEN}==========================================================${NC}\n"
+if [ "${#FAILED_UPDATES[@]}" -eq 0 ]; then
+    echo -e "\n${BOLD}${GREEN}==========================================================${NC}"
+    echo -e "${BOLD}${GREEN}  ✔ All system and tool updates completed successfully!   ${NC}"
+    echo -e "${BOLD}${GREEN}==========================================================${NC}\n"
+else
+    echo -e "\n${BOLD}${RED}==========================================================${NC}"
+    echo -e "${BOLD}${RED}  ✖ Some updates failed during execution:                 ${NC}"
+    for failed in "${FAILED_UPDATES[@]}"; do
+        echo -e "    ${RED}• ${failed}${NC}"
+    done
+    echo -e "${BOLD}${RED}==========================================================${NC}\n"
+    exit 1
+fi
