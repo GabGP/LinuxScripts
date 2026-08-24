@@ -1,8 +1,20 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # ==========================================
 # ezin (Easy Install)
+# Automates extracting and installing archives to /opt
 # ==========================================
+
+set -euo pipefail
+
+TMP_DIR=""
+
+cleanup() {
+  if [ -n "${TMP_DIR:-}" ] && [ -d "$TMP_DIR" ]; then
+    rm -rf "$TMP_DIR"
+  fi
+}
+trap cleanup EXIT INT TERM
 
 require_root() {
   if [ "$EUID" -ne 0 ]; then
@@ -12,7 +24,7 @@ require_root() {
 }
 
 setup_target_file() {
-  FILEPATH="$1"
+  FILEPATH="${1:-}"
   if [ -z "$FILEPATH" ]; then
     read -p "Enter the full path to the zip or tarball file: " FILEPATH
   fi
@@ -42,15 +54,9 @@ extract_archive() {
   TMP_DIR=$(mktemp -d)
 
   if [ "$IS_ZIP" = true ]; then
-    unzip -q "$FILEPATH" -d "$TMP_DIR"
+    unzip -q "$FILEPATH" -d "$TMP_DIR" || { echo "Error: Extraction failed."; exit 1; }
   elif [ "$IS_TAR" = true ]; then
-    tar -xf "$FILEPATH" -C "$TMP_DIR"
-  fi
-
-  if [ $? -ne 0 ]; then
-    echo "Error: Extraction failed."
-    rm -rf "$TMP_DIR"
-    exit 1
+    tar -xf "$FILEPATH" -C "$TMP_DIR" || { echo "Error: Extraction failed."; exit 1; }
   fi
 
   # Determine extraction structure
@@ -77,23 +83,25 @@ move_to_opt() {
     local overwrite="N"
     read -p "Warning: $TARGET_OPT_DIR already exists. Overwrite? [y/N] " overwrite
     if [[ "${overwrite,,}" != "y" ]]; then
-      echo -e "Aborting..."
-      rm -rf "$TMP_DIR"
+      echo "Aborting..."
       exit 1
     fi
-    echo -e "Overwriting..."
+    echo "Overwriting..."
     rm -rf "$TARGET_OPT_DIR"
   fi
   
-  mv "$SOURCE_DIR" "$TARGET_OPT_DIR"
-  rm -rf "$TMP_DIR" # Cleanup temporary directory
+  if [ "$SOURCE_DIR" = "$TMP_DIR" ]; then
+    mkdir -p "$TARGET_OPT_DIR"
+    cp -a "$TMP_DIR"/. "$TARGET_OPT_DIR/"
+  else
+    mv "$SOURCE_DIR" "$TARGET_OPT_DIR"
+  fi
 }
 
 setup_desktop_file() {
   local desktop_system_dir="/usr/share/applications"
   local found_desktop
   found_desktop=$(find "$TARGET_OPT_DIR" -maxdepth 3 -type f -name "*.desktop" | head -n 1)
-  local create_desktop="N"
 
   if [ -n "$found_desktop" ]; then
     local desktop_filename
@@ -118,6 +126,7 @@ setup_desktop_file() {
     echo -e "\nDesktop file successfully installed to: $final_desktop_path"
     
   else
+    local create_desktop="N"
     read -p $'\nNo .desktop file found. Create one? [y/N] ' create_desktop
     if [[ "${create_desktop,,}" == "y" ]]; then
       local app_name app_comment app_exec app_icon app_cat
@@ -154,6 +163,51 @@ EOF
   fi
 }
 
+setup_binary_symlink() {
+  local create_symlink="Y"
+  echo ""
+  read -p "Create a symlink in /usr/local/bin for instant command access? [Y/n] " create_symlink
+  create_symlink="${create_symlink:-Y}"
+
+  if [[ "${create_symlink,,}" == "y" ]]; then
+    local bin_candidates=()
+    if [ -d "$TARGET_OPT_DIR/bin" ]; then
+      while IFS= read -r f; do
+        [ -x "$f" ] && [ -f "$f" ] && bin_candidates+=("$f")
+      done < <(find "$TARGET_OPT_DIR/bin" -maxdepth 1 -type f -executable 2>/dev/null || true)
+    fi
+    if [ "${#bin_candidates[@]}" -eq 0 ]; then
+      while IFS= read -r f; do
+        [ -x "$f" ] && [ -f "$f" ] && bin_candidates+=("$f")
+      done < <(find "$TARGET_OPT_DIR" -maxdepth 2 -type f -executable 2>/dev/null || true)
+    fi
+
+    local target_exec=""
+    if [ "${#bin_candidates[@]}" -eq 1 ]; then
+      target_exec="${bin_candidates[0]}"
+      echo "Detected executable: $target_exec"
+    fi
+
+    if [ -z "$target_exec" ]; then
+      read -p "Enter path to executable binary: " target_exec
+    fi
+
+    if [ -f "$target_exec" ] && [ -x "$target_exec" ]; then
+      local symlink_name
+      symlink_name=$(basename "$target_exec")
+      local custom_name=""
+      read -p "Symlink command name in /usr/local/bin [$symlink_name]: " custom_name
+      symlink_name="${custom_name:-$symlink_name}"
+
+      ln -sf "$target_exec" "/usr/local/bin/$symlink_name"
+      echo -e "✔ Symlink created: /usr/local/bin/$symlink_name -> $target_exec"
+      echo -e "You can now run '$symlink_name' directly from any terminal."
+    else
+      echo "Warning: '$target_exec' is not an executable file. Skipping symlink creation."
+    fi
+  fi
+}
+
 setup_bashrc_path() {
   local add_path="N"
   echo ""
@@ -161,7 +215,7 @@ setup_bashrc_path() {
   
   if [[ "${add_path,,}" == "y" ]]; then
     local target_bashrc
-    if [ -n "$SUDO_USER" ]; then
+    if [ -n "${SUDO_USER:-}" ]; then
       local user_home
       user_home=$(getent passwd "$SUDO_USER" | cut -d: -f6)
       target_bashrc="$user_home/.bashrc"
@@ -183,7 +237,7 @@ setup_bashrc_path() {
         echo "# Added by ezin tool" >> "$target_bashrc"
         echo "export PATH=\$PATH:$binary_dir" >> "$target_bashrc"
         
-        if [ -n "$SUDO_USER" ]; then
+        if [ -n "${SUDO_USER:-}" ]; then
           chown "$SUDO_USER" "$target_bashrc"
         fi
         
@@ -202,10 +256,11 @@ setup_bashrc_path() {
 # ==========================================
 main() {
   require_root
-  setup_target_file "$1"
+  setup_target_file "$@"
   extract_archive
   move_to_opt
   setup_desktop_file
+  setup_binary_symlink
   setup_bashrc_path
   
   echo -e "\nInstallation Complete!"
