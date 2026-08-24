@@ -8,7 +8,7 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-BACKUP_DIR="${HOME}/.dotfiles_backup/$(date +%Y%m%d_%H%M%S)"
+BACKUP_DIR="${SCRIPT_DIR}/backups/$(date +%Y%m%d_%H%M%S)"
 
 # Color formatting
 COLOR_RESET="\033[0m"
@@ -82,7 +82,7 @@ menu_install_configs() {
         1)
             echo -e "\n${COLOR_BOLD}Installing all configurations...${COLOR_RESET}"
             install_config_item "Kitty" "${SCRIPT_DIR}/config/kitty/kitty.conf" "${HOME}/.config/kitty/kitty.conf"
-            install_config_item "Starship" "${SCRIPT_DIR}/config/starship.toml" "${HOME}/.config/starship.toml"
+            install_config_item "Starship" "${SCRIPT_DIR}/config/starship/starship.toml" "${HOME}/.config/starship.toml"
             install_config_item "Bash" "${SCRIPT_DIR}/config/bash/.bashrc" "${HOME}/.bashrc"
             ;;
         2)
@@ -91,7 +91,7 @@ menu_install_configs() {
             ;;
         3)
             echo -e "\n${COLOR_BOLD}Installing Starship configuration...${COLOR_RESET}"
-            install_config_item "Starship" "${SCRIPT_DIR}/config/starship.toml" "${HOME}/.config/starship.toml"
+            install_config_item "Starship" "${SCRIPT_DIR}/config/starship/starship.toml" "${HOME}/.config/starship.toml"
             ;;
         4)
             echo -e "\n${COLOR_BOLD}Installing Bash configuration...${COLOR_RESET}"
@@ -166,7 +166,7 @@ install_both() {
 
     echo -e "${COLOR_BOLD}1. Installing configurations...${COLOR_RESET}"
     install_config_item "Kitty" "${SCRIPT_DIR}/config/kitty/kitty.conf" "${HOME}/.config/kitty/kitty.conf"
-    install_config_item "Starship" "${SCRIPT_DIR}/config/starship.toml" "${HOME}/.config/starship.toml"
+    install_config_item "Starship" "${SCRIPT_DIR}/config/starship/starship.toml" "${HOME}/.config/starship.toml"
     install_config_item "Bash" "${SCRIPT_DIR}/config/bash/.bashrc" "${HOME}/.bashrc"
 
     echo -e "\n${COLOR_BOLD}2. Linking scripts to ~/.local/bin...${COLOR_RESET}"
