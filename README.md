@@ -76,7 +76,7 @@ Interactive installer that extracts pre-compiled archive packages into `/opt`, c
 
 | Configuration | Destination | Features |
 | :--- | :--- | :--- |
-| **`config/kitty/kitty.conf`** | `~/.config/kitty/kitty.conf` | `CaskaydiaCove Nerd Font` font family, smooth scaling, and theme integration. |
+| **`config/kitty/kitty.conf`** | `~/.config/kitty/kitty.conf` | `Cascadia Code NF` font family, smooth scaling, and theme integration. |
 | **`config/starship/starship.toml`** | `~/.config/starship.toml` | **Gruvbox-Rainbow** continuous capsule layout with **Kokiri by Chuck** color palette. |
 | **`config/bash/.bashrc`** | `~/.bashrc` | User environment variables, path exports, and Starship shell hook. |
 
