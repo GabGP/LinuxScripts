@@ -1,95 +1,95 @@
-# Personal Linux Scripts (Fedora)
+# Fedora Linux Scripts & Dotfiles
 
-A collection of personal Bash automation and maintenance scripts tailored for **Fedora Linux**.
+A modular collection of personal Bash automation scripts, maintenance utilities, and terminal configurations crafted for **Fedora Linux**.
 
 > [!NOTE]
-> These scripts are intended for **personal use** and are optimized specifically for a Fedora development environment with tools like DNF, Flatpak, Rust (`rustup`), and Antigravity CLI (`agy`).
+> This project is intended for **personal use** and is tailored specifically for my personal **Fedora Linux** setup, integrating **DNF**, **Flatpak**, **Kitty**, **Starship**, **Rust (`rustup`)**, and **Antigravity CLI (`agy`)**.
 
 ---
 
-## 📂 Scripts Overview
+## 📂 Repository Layout
 
-| Script | Purpose | Privileges |
+```text
+LinuxScripts/
+├── config/                      # Dotfiles & tool configurations
+│   ├── bash/.bashrc             # Shell environment & aliases (~/.bashrc)
+│   ├── kitty/kitty.conf         # Kitty terminal & Nerd Font (~/.config/kitty/kitty.conf)
+│   └── starship/starship.toml   # Starship prompt (~/.config/starship.toml)
+├── scripts/                     # Maintenance & automation scripts
+│   ├── update.sh                # Automated system & tool updater
+│   ├── check-updates.sh         # Read-only pending updates checker
+│   └── ezin.sh                  # Universal archive installer (.tar, .zip)
+├── setup.sh                     # Interactive setup & configuration manager
+├── .gitignore                   # Ignores local backups/
+├── LICENSE                      # MIT License
+└── README.md
+```
+
+---
+
+## 🚀 Quick Setup (`setup.sh`)
+
+The **`setup.sh`** script provides an interactive menu to deploy configurations and link automation scripts without needing complex flags.
+
+```bash
+# 1. Clone and enter repository
+git clone https://github.com/GabGP/LinuxScripts.git
+cd LinuxScripts
+
+# 2. Run the interactive setup manager:
+./setup.sh
+```
+
+### Menu Options:
+* **1) Configurations:** Install all or selective configs (Kitty, Starship, Bash) as symlinks with automated backups to `backups/` (gitignored).
+* **2) Automation Scripts:** Link all or selective scripts (`update`, `check-updates`, `ezin`) to `~/.local/bin/` for direct terminal execution.
+* **3) Both (Full Installation):** Deploys all dotfiles and links all scripts in one step.
+
+### Prerequisites
+
+```bash
+sudo dnf install file tar unzip sed desktop-file-utils curl
+chmod +x scripts/*.sh setup.sh
+```
+
+---
+
+## 📖 Scripts
+
+### 1. `scripts/update.sh`
+Performs automated sequential updates across all Fedora packages and toolchains:
+* **Updates:** DNF RPMs, Flatpaks, Starship binary, Antigravity CLI (`agy`), and Rust toolchains (`rustup`).
+* **Usage:** `./scripts/update.sh` *(Run as regular user; prompts for `sudo` only when needed for DNF).*
+
+### 2. `scripts/check-updates.sh`
+Queries package managers and GitHub releases for pending updates without modifying the system:
+* **Checks:** DNF, Flatpak, Starship, AGY CLI, and Rustup.
+* **Usage:** `./scripts/check-updates.sh`
+
+### 3. `scripts/ezin.sh`
+Interactive installer that extracts pre-compiled archive packages into `/opt`, creates `.desktop` menu entries, and links binaries to `/usr/local/bin`:
+* **Usage:** `sudo ./scripts/ezin.sh [path-to-archive.tar.xz]`
+
+---
+
+## 🎨 Configurations
+
+| Configuration | Destination | Features |
 | :--- | :--- | :--- |
-| **`update.sh`** | Sequentially updates Fedora system packages, Flatpaks, and developer toolchains. | Regular user (prompts for `sudo` for DNF) |
-| **`check-updates.sh`** | Checks for available updates across all tools without making changes. | Regular user |
-| **`ezin.sh`** | Automates installing pre-compiled software archives (`.tar`, `.zip`) into system paths. | Root (`sudo`) |
+| **`config/kitty/kitty.conf`** | `~/.config/kitty/kitty.conf` | `CaskaydiaCove Nerd Font` font family, smooth scaling, and theme integration. |
+| **`config/starship/starship.toml`** | `~/.config/starship.toml` | **Gruvbox-Rainbow** continuous capsule layout with **Kokiri by Chuck** color palette. |
+| **`config/bash/.bashrc`** | `~/.bashrc` | User environment variables, path exports, and Starship shell hook. |
+
+### 🌟 Starship Prompt Details
+
+* **Theme Design:** Continuous Powerline capsules (inspired by Gruvbox-Rainbow) with Chuck's earthy **Kokiri** palette (Dark Gold, Warm Amber, Forest Teal, Slate Blue, Plum, Forest Green).
+* **Readability:** Deep espresso font (`#1a1005`) for high contrast against colored capsules.
+* **100% Feature Completeness:** Preserves all **101 Starship default modules** (languages, runtimes, containers, cloud contexts, diagnostics).
+* **Diagnostics Order:** Command duration and exit code status appear after the clock inside the final capsule.
+* **Standardized Palette:** Edit only 8 semantic hex variables at the top of [config/starship/starship.toml](config/starship/starship.toml) to swap color themes anytime.
 
 ---
 
-## 🛠 Prerequisites & Setup
+## 📄 License
 
-Ensure the scripts have executable permissions before running them:
-
-```bash
-chmod +x *.sh
-```
-
-### Dependencies
-
-For full functionality across all scripts (particularly `ezin.sh`), make sure standard system utilities are installed:
-
-```bash
-sudo dnf install file tar unzip sed desktop-file-utils
-```
-
----
-
-## 📖 Script Usage & Expected Behaviors
-
-### 1. `update.sh` — System & Tools Updater
-
-Upgrades all packages and developer toolchains in a single command.
-
-#### Usage:
-```bash
-./update.sh
-```
-
-> [!IMPORTANT]
-> Run this script as your **regular user**, not directly with `sudo`. The script will request `sudo` credentials when needed for `dnf`, ensuring that user-specific tools like `rustup` and `agy` update properly inside your user environment (`$HOME`).
-
-#### What it does:
-1. **DNF**: Refreshes repositories and updates all Fedora RPM packages (`sudo dnf upgrade --refresh -y`).
-2. **Flatpak**: Updates all system and user Flatpak applications and runtimes (`flatpak update -y`).
-3. **Antigravity CLI (AGY)**: Updates the `agy` CLI binary (`agy update`).
-4. **Rustup**: Updates installed Rust toolchains and rustup manager (`rustup update`).
-5. Displays a green summary banner upon completion.
-
----
-
-### 2. `check-updates.sh` — Update Checker (Read-Only)
-
-Queries repositories and tool managers to check if updates are available without applying any modifications.
-
-#### Usage:
-```bash
-./check-updates.sh
-```
-
-#### What it does:
-1. **DNF**: Runs `dnf check-update` to verify if any Fedora package updates are pending.
-2. **Flatpak**: Queries `flatpak remote-ls --updates` for pending application/runtime updates.
-3. **Antigravity CLI (AGY)**: Reports current version and provides upgrade guidance.
-4. **Rustup**: Runs `rustup check` to check for newer toolchains or compiler versions.
-5. **Summary Banner**: Displays whether everything is up to date or if updates are pending with a suggestion to run `./update.sh`.
-
----
-
-### 3. `ezin.sh` — Easy Install for Archives
-
-An interactive installer designed to automate extracting and installing pre-compiled Linux software distributed as `.tar.gz`, `.tar.xz`, `.tar.bz2`, or `.zip` archives.
-
-#### Features:
-- **Archive Protection**: Handles nested and flat archive structures safely.
-- **Desktop Integration**: Detects and configures `.desktop` files and updates desktop database (`update-desktop-database`).
-- **Path Setup**: Links binaries to `/usr/local/bin` or standard paths.
-
-#### Usage:
-```bash
-# Pass archive path as an argument
-sudo ./ezin.sh /path/to/software-1.2.3.tar.xz
-
-# Or run interactively (will prompt for file path)
-sudo ./ezin.sh
-```
+MIT License — see the [LICENSE](LICENSE) file for details.
