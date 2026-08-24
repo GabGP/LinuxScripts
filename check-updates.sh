@@ -6,7 +6,7 @@
 # (Read-only: Does NOT install or modify any packages)
 # ==========================================================
 
-set -u
+set -uo pipefail
 
 # ANSI color codes
 BOLD="\033[1m"
