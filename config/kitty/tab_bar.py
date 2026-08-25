@@ -45,8 +45,13 @@ def _ensure_auto_refresh():
 
     def _loop():
         while True:
-            # Sleep until next 10s interval
-            time.sleep(10)
+            now = datetime.datetime.now()
+            # Calculate exact seconds + microsecond fraction remaining until next :00 mark
+            remaining = 60.0 - (now.second + now.microsecond / 1_000_000.0)
+            if remaining <= 0.05:
+                remaining = 60.0
+
+            time.sleep(remaining)
             try:
                 boss = get_boss()
                 if boss:
@@ -166,22 +171,26 @@ def _draw_right_status(screen: Screen, draw_data: DrawData) -> None:
     color_yellow = as_rgb(color_as_int(opts.color3)) if opts else active_bg
     color_blue = as_rgb(color_as_int(opts.color4)) if opts else inactive_bg
 
+    def _fmt(text: str) -> str:
+        # Normalize double spaces and ensure uniform padding [ icon value ]
+        return f" {' '.join(text.split())} "
+
     # Build status widgets: (text, fg_color, bg_color)
     widgets = []
 
     # 1. Weather Widget (Theme Blue / Inactive Accent)
     weather = get_weather()
     if weather:
-        widgets.append((f" {weather} ", inactive_fg, color_blue))
+        widgets.append((_fmt(weather), inactive_fg, color_blue))
 
     # 2. Battery Widget (Theme Green Accent)
     battery = get_battery()
     if battery:
-        widgets.append((f" {battery} ", active_fg, color_green))
+        widgets.append((_fmt(battery), active_fg, color_green))
 
     # 3. Clock Widget (Theme Active Tab Colors)
     time_str = get_time()
-    widgets.append((f" {time_str} ", active_fg, active_bg))
+    widgets.append((_fmt(time_str), active_fg, active_bg))
 
     if not widgets:
         return
