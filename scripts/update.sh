@@ -23,6 +23,8 @@ print_info() { echo -e "${COLOR_CYAN}ℹ $*${COLOR_RESET}"; }
 print_warning() { echo -e "${COLOR_YELLOW}⚠ $*${COLOR_RESET}"; }
 print_error() { echo -e "${COLOR_RED}✖ $*${COLOR_RESET}"; }
 
+FAILED_UPDATES=()
+
 # Warn if executed directly as root
 if [ "${EUID}" -eq 0 ]; then
     print_warning "Running the entire script as root is not recommended."

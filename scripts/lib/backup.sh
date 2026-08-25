@@ -12,7 +12,7 @@ fi
 
 backup_path() {
     local target="$1"
-    local backup_root="${2:-${HOME}/.dotfiles_backup/$(date +%Y%m%d_%H%M%S)}"
+    local backup_root="${2:-$(pwd)/backups/$(date +%Y%m%d_%H%M%S)}"
 
     if [[ -e "$target" || -L "$target" ]]; then
         mkdir -p "${backup_root}"
