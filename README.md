@@ -48,6 +48,10 @@ LinuxScripts/
 │   │   └── tab_bar.py           # → ~/.config/kitty/tab_bar.py (custom status bar)
 │   └── starship/starship.toml   # → ~/.config/starship.toml
 ├── scripts/
+│   ├── lib/                     # Shared modular libraries (colors, logger, backup)
+│   │   ├── colors.sh
+│   │   ├── logger.sh
+│   │   └── backup.sh
 │   ├── update.sh                # Updates DNF, Flatpak, Starship, agy, Rust
 │   ├── check-updates.sh         # Checks for pending updates (read-only)
 │   └── ezin.sh                  # Installs archive packages into /opt
