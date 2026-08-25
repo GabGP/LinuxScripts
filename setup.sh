@@ -8,16 +8,24 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+LIB_DIR="${SCRIPT_DIR}/scripts/lib"
 BACKUP_DIR="${SCRIPT_DIR}/backups/$(date +%Y%m%d_%H%M%S)"
 
-# Color formatting
-COLOR_RESET="\033[0m"
-COLOR_BOLD="\033[1m"
-COLOR_GREEN="\033[32m"
-COLOR_BLUE="\033[34m"
-COLOR_YELLOW="\033[33m"
-COLOR_CYAN="\033[36m"
-COLOR_RED="\033[31m"
+# Source shared modular libraries
+if [[ -f "${LIB_DIR}/colors.sh" ]]; then
+    # shellcheck source=scripts/lib/colors.sh
+    . "${LIB_DIR}/colors.sh"
+fi
+
+if [[ -f "${LIB_DIR}/logger.sh" ]]; then
+    # shellcheck source=scripts/lib/logger.sh
+    . "${LIB_DIR}/logger.sh"
+fi
+
+if [[ -f "${LIB_DIR}/backup.sh" ]]; then
+    # shellcheck source=scripts/lib/backup.sh
+    . "${LIB_DIR}/backup.sh"
+fi
 
 print_header() {
     clear 2>/dev/null || true
@@ -28,25 +36,13 @@ print_header() {
     echo -e "${COLOR_RESET}"
 }
 
-backup_file() {
-    local target="$1"
-    if [[ -e "$target" || -L "$target" ]]; then
-        mkdir -p "${BACKUP_DIR}"
-        local rel_path="${target#${HOME}/}"
-        local dest="${BACKUP_DIR}/${rel_path}"
-        mkdir -p "$(dirname "${dest}")"
-        cp -a "$target" "$dest"
-        echo -e "  ${COLOR_YELLOW}Backed up existing:${COLOR_RESET} $target -> $dest"
-    fi
-}
-
 install_config_item() {
     local name="$1"
     local src="$2"
     local dest="$3"
 
     mkdir -p "$(dirname "$dest")"
-    backup_file "$dest"
+    backup_path "$dest" "${BACKUP_DIR}"
     rm -f "$dest"
     ln -sf "$src" "$dest"
     echo -e "  ${COLOR_GREEN}✔ Installed ${name}:${COLOR_RESET} $dest -> $src"
@@ -71,7 +67,7 @@ menu_install_configs() {
     print_header
     echo -e "${COLOR_BOLD}Select configurations to install (Symlink with auto-backup):${COLOR_RESET}\n"
     echo "  1) All Configurations (Kitty, Starship, Bash)"
-    echo "  2) Kitty Terminal (~/.config/kitty/kitty.conf)"
+    echo "  2) Kitty Terminal (~/.config/kitty/)"
     echo "  3) Starship Prompt (~/.config/starship.toml)"
     echo "  4) Bash Shell (~/.bashrc)"
     echo "  5) Back to Main Menu"
@@ -125,7 +121,7 @@ menu_install_scripts() {
     echo ""
     read -rp "Enter choice [1-5]: " script_choice
 
-    # Ensure scripts directory has execute bits
+    # Ensure scripts have execute permissions
     chmod +x "${SCRIPT_DIR}/scripts/"*.sh
 
     case "$script_choice" in

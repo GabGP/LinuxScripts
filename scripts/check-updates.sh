@@ -8,36 +8,21 @@
 
 set -uo pipefail
 
-# ANSI color codes
-BOLD="\033[1m"
-GREEN="\033[0;32m"
-BLUE="\033[0;34m"
-YELLOW="\033[0;33m"
-CYAN="\033[0;36m"
-RED="\033[0;31m"
-NC="\033[0m" # No Color
+# Resolve library directory (works both direct and via ~/.local/bin symlinks)
+REAL_SCRIPT_PATH="$(readlink -f "${BASH_SOURCE[0]}" 2>/dev/null || echo "${BASH_SOURCE[0]}")"
+LIB_DIR="$(cd "$(dirname "${REAL_SCRIPT_PATH}")" && pwd)/lib"
 
-UPDATES_AVAILABLE=0
+if [[ -f "${LIB_DIR}/logger.sh" ]]; then
+    # shellcheck source=scripts/lib/logger.sh
+    . "${LIB_DIR}/logger.sh"
+fi
 
-print_step() {
-    echo -e "\n${BOLD}${BLUE}==>${NC} ${BOLD}$1${NC}"
-}
-
-print_success() {
-    echo -e "${GREEN}✔ $1${NC}"
-}
-
-print_info() {
-    echo -e "${CYAN}ℹ $1${NC}"
-}
-
-print_warning() {
-    echo -e "${YELLOW}⚠ $1${NC}"
-}
-
-print_error() {
-    echo -e "${RED}✖ $1${NC}"
-}
+# Compatibility aliases
+print_step() { log_step "$@"; }
+print_success() { echo -e "${COLOR_GREEN}✔ $*${COLOR_RESET}"; }
+print_info() { echo -e "${COLOR_CYAN}ℹ $*${COLOR_RESET}"; }
+print_warning() { echo -e "${COLOR_YELLOW}⚠ $*${COLOR_RESET}"; }
+print_error() { echo -e "${COLOR_RED}✖ $*${COLOR_RESET}"; }
 
 # Warn if executed directly as root
 if [ "${EUID}" -eq 0 ]; then
