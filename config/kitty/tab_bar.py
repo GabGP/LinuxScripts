@@ -1,18 +1,19 @@
 # ==============================================================================
-#  Kitty Custom Tab Bar Extension (Slanted Powerline + Right Status Widgets)
+#  Kitty Custom Tab Bar Extension
 # ==============================================================================
-#  Renders slanted powerline tabs on the left and live status widgets on the right:
-#  - Weather (Condition + Temperature in Celsius, asynchronously cached)
-#  - Battery (Level + Charging status from /sys/class/power_supply/BAT0)
-#  - Clock (24-Hour Time with Nerd Font clock icon)
+#  - Left: Powerline tabs matching kitty.conf style (angled / slanted / round)
+#  - Right: Live status widgets (Weather, Battery, Clock)
+#  - Colors: Dynamically inherited from Kitty active theme (current-theme.conf)
+#  - Auto-Refresh: Background thread triggers real-time updates for clock/battery
 # ==============================================================================
 
 import datetime
 import os
 import threading
+import time
 import urllib.request
 
-from kitty.fast_data_types import Screen, wcswidth
+from kitty.fast_data_types import Screen, get_boss, get_options, wcswidth
 from kitty.tab_bar import (
     DrawData,
     ExtraData,
@@ -20,14 +21,46 @@ from kitty.tab_bar import (
     as_rgb,
     draw_tab_with_powerline,
 )
+from kitty.utils import color_as_int
 
-# Weather cache configuration (avoids network lag on terminal draws)
+# Cache & timing constants
 WEATHER_CACHE = "/tmp/kitty_weather.cache"
-WEATHER_REFRESH_SECONDS = 1800  # Refresh every 30 minutes
+WEATHER_REFRESH_SECONDS = 1800  # 30 minutes
 
 
-def _fetch_weather_async() -> None:
-    """Fetches weather in the background without blocking terminal rendering."""
+# ------------------------------------------------------------------------------
+# 1. Background Auto-Refresher (Keeps Clock & Battery Dynamic When Idle)
+# ------------------------------------------------------------------------------
+_timer_started = False
+_timer_lock = threading.Lock()
+
+
+def _ensure_auto_refresh():
+    """Starts a background daemon to refresh tab bar every 10s for live clock/battery."""
+    global _timer_started
+    with _timer_lock:
+        if _timer_started:
+            return
+        _timer_started = True
+
+    def _loop():
+        while True:
+            # Sleep until next 10s interval
+            time.sleep(10)
+            try:
+                boss = get_boss()
+                if boss:
+                    boss.refresh_active_tab_bar()
+            except Exception:
+                pass
+
+    threading.Thread(target=_loop, daemon=True).start()
+
+
+# ------------------------------------------------------------------------------
+# 2. Weather & Battery Data Fetchers
+# ------------------------------------------------------------------------------
+def _fetch_weather_async():
     def _worker():
         try:
             req = urllib.request.Request(
@@ -36,7 +69,6 @@ def _fetch_weather_async() -> None:
             )
             with urllib.request.urlopen(req, timeout=3.0) as resp:
                 data = resp.read().decode("utf-8").strip()
-                # Clean up formatting (e.g., '+22°C' -> '22°C')
                 data = data.replace("+", "")
                 with open(WEATHER_CACHE, "w", encoding="utf-8") as f:
                     f.write(data)
@@ -47,7 +79,6 @@ def _fetch_weather_async() -> None:
 
 
 def get_weather() -> str:
-    """Reads cached weather or triggers background update."""
     try:
         if os.path.exists(WEATHER_CACHE):
             mtime = os.path.getmtime(WEATHER_CACHE)
@@ -66,7 +97,6 @@ def get_weather() -> str:
 
 
 def get_battery() -> str:
-    """Reads Linux sysfs power supply for battery level and charging state."""
     try:
         base = "/sys/class/power_supply"
         if not os.path.exists(base):
@@ -101,7 +131,6 @@ def get_battery() -> str:
                         icon = "󰁺"
                     return f"{icon} {cap}%"
 
-        # Fallback to AC if no battery found
         ac_path = os.path.join(base, "AC/online")
         if os.path.exists(ac_path):
             with open(ac_path, "r") as f:
@@ -113,75 +142,102 @@ def get_battery() -> str:
 
 
 def get_time() -> str:
-    """Formats current 24-hour time with clock icon."""
     return datetime.datetime.now().strftime(" %H:%M")
 
 
+# ------------------------------------------------------------------------------
+# 3. Right Status Bar Renderer (Theme Inherited & Mirrored Powerline)
+# ------------------------------------------------------------------------------
 def _draw_right_status(screen: Screen, draw_data: DrawData) -> None:
-    """Draws right-aligned status capsules (Weather, Battery, Clock)."""
+    try:
+        opts = get_options()
+    except Exception:
+        opts = None
+
+    # Inherit colors directly from Kitty theme palette
+    default_bg = as_rgb(int(draw_data.default_bg))
+    active_bg = as_rgb(int(draw_data.active_bg))
+    active_fg = as_rgb(int(draw_data.active_fg))
+    inactive_bg = as_rgb(int(draw_data.inactive_bg))
+    inactive_fg = as_rgb(int(draw_data.inactive_fg))
+
+    # Palette accents if available from theme
+    color_green = as_rgb(color_as_int(opts.color2)) if opts else active_bg
+    color_yellow = as_rgb(color_as_int(opts.color3)) if opts else active_bg
+    color_blue = as_rgb(color_as_int(opts.color4)) if opts else inactive_bg
+
+    # Build status widgets: (text, fg_color, bg_color)
     widgets = []
 
-    # 1. Weather Widget (Muted Slate / Gold)
+    # 1. Weather Widget (Theme Blue / Inactive Accent)
     weather = get_weather()
     if weather:
-        widgets.append((f" {weather} ", 0xD4BE98, 0x32302F))
+        widgets.append((f" {weather} ", inactive_fg, color_blue))
 
-    # 2. Battery Widget (Forest Sage / Dark Text)
+    # 2. Battery Widget (Theme Green Accent)
     battery = get_battery()
     if battery:
-        widgets.append((f" {battery} ", 0x1A1005, 0x89B482))
+        widgets.append((f" {battery} ", active_fg, color_green))
 
-    # 3. Clock Widget (Warm Amber / Dark Text)
+    # 3. Clock Widget (Theme Active Tab Colors)
     time_str = get_time()
-    widgets.append((f" {time_str} ", 0x1A1005, 0xD4874C))
+    widgets.append((f" {time_str} ", active_fg, active_bg))
 
     if not widgets:
         return
 
-    # Separator glyph matching tab bar style
-    sep_symbol = "" if draw_data.powerline_style == "slanted" else ""
+    # Mirror the left powerline separator symbol for right-aligned widgets
+    # Left: '' (angled) -> Right: ''
+    # Left: '' (slanted) -> Right: ''
+    # Left: '' (round)   -> Right: ''
+    if draw_data.powerline_style == "slanted":
+        sep_symbol = ""
+    elif draw_data.powerline_style == "round":
+        sep_symbol = ""
+    else:  # angled (default)
+        sep_symbol = ""
 
-    # Calculate total character cells needed for right status
+    # Calculate total width required on screen
     total_width = 0
     for text, _, _ in widgets:
-        total_width += wcswidth(text) + 1  # +1 for separator
+        total_width += wcswidth(text) + 1  # +1 for powerline separator
 
-    default_bg = as_rgb(int(draw_data.default_bg))
     available_space = screen.columns - screen.cursor.x
-
     if available_space <= total_width:
         return
 
-    # Fill whitespace gap between left tabs and right status bar
+    # Fill gap between left tabs and right widgets
     gap = screen.columns - total_width - screen.cursor.x
     if gap > 0:
         screen.cursor.bg = default_bg
         screen.cursor.fg = default_bg
         screen.draw(" " * gap)
 
-    # Render each status capsule with powerline separator
+    # Draw each widget capsule
     prev_bg = default_bg
     for text, fg, bg in widgets:
-        bg_rgb = as_rgb(bg)
-        fg_rgb = as_rgb(fg)
-
-        # Draw left-pointing separator
-        screen.cursor.fg = bg_rgb
+        # Draw mirrored powerline separator
+        screen.cursor.fg = bg
         screen.cursor.bg = prev_bg
         screen.draw(sep_symbol)
 
-        # Draw capsule content
-        screen.cursor.fg = fg_rgb
-        screen.cursor.bg = bg_rgb
+        # Draw widget content in bold for crisp readability
+        screen.cursor.bold = True
+        screen.cursor.fg = fg
+        screen.cursor.bg = bg
         screen.draw(text)
+        screen.cursor.bold = False
 
-        prev_bg = bg_rgb
+        prev_bg = bg
 
-    # Reset cursor
+    # Reset cursor colors
     screen.cursor.bg = default_bg
     screen.cursor.fg = default_bg
 
 
+# ------------------------------------------------------------------------------
+# 4. Main Entry Point
+# ------------------------------------------------------------------------------
 def draw_tab(
     draw_data: DrawData,
     screen: Screen,
@@ -192,10 +248,16 @@ def draw_tab(
     is_last: bool,
     extra_data: ExtraData,
 ) -> int:
-    """Main tab drawing callback executed by Kitty for each tab."""
+    # Ensure live auto-refresher is running
+    _ensure_auto_refresh()
+
+    # Draw left tab with Kitty built-in powerline function
     end = draw_tab_with_powerline(
         draw_data, screen, tab, before, max_tab_length, index, is_last, extra_data
     )
+
+    # When the final tab is reached, draw the right status bar
     if is_last:
         _draw_right_status(screen, draw_data)
+
     return end
