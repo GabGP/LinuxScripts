@@ -13,7 +13,7 @@ import threading
 import time
 import urllib.request
 
-from kitty.fast_data_types import Screen, get_boss, get_options, wcswidth
+from kitty.fast_data_types import Screen, add_timer, get_boss, get_options, wcswidth
 from kitty.tab_bar import (
     DrawData,
     ExtraData,
@@ -29,37 +29,31 @@ WEATHER_REFRESH_SECONDS = 1800  # 30 minutes
 
 
 # ------------------------------------------------------------------------------
-# 1. Background Auto-Refresher (Keeps Clock & Battery Dynamic When Idle)
+# 1. Native Kitty Event-Loop Timer (Real-time Clock & Battery Refresh)
 # ------------------------------------------------------------------------------
-_timer_started = False
-_timer_lock = threading.Lock()
+_timer_registered = False
 
 
-def _ensure_auto_refresh():
-    """Starts a background daemon to refresh tab bar every 10s for live clock/battery."""
-    global _timer_started
-    with _timer_lock:
-        if _timer_started:
-            return
-        _timer_started = True
+def _timer_callback(timer_id: int | None) -> None:
+    try:
+        boss = get_boss()
+        if boss:
+            boss.refresh_active_tab_bar()
+    except Exception:
+        pass
 
-    def _loop():
-        while True:
-            now = datetime.datetime.now()
-            # Calculate exact seconds + microsecond fraction remaining until next :00 mark
-            remaining = 60.0 - (now.second + now.microsecond / 1_000_000.0)
-            if remaining <= 0.05:
-                remaining = 60.0
 
-            time.sleep(remaining)
-            try:
-                boss = get_boss()
-                if boss:
-                    boss.refresh_active_tab_bar()
-            except Exception:
-                pass
-
-    threading.Thread(target=_loop, daemon=True).start()
+def _ensure_auto_refresh() -> None:
+    """Registers Kitty native C event-loop timer to refresh the tab bar dynamically."""
+    global _timer_registered
+    if _timer_registered:
+        return
+    _timer_registered = True
+    try:
+        # Native Wayland/GLFW event loop timer (repeats every 1.0s)
+        add_timer(_timer_callback, 1.0, True)
+    except Exception:
+        pass
 
 
 # ------------------------------------------------------------------------------
