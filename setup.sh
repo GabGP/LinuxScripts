@@ -81,13 +81,15 @@ menu_install_configs() {
     case "$config_choice" in
         1)
             echo -e "\n${COLOR_BOLD}Installing all configurations...${COLOR_RESET}"
-            install_config_item "Kitty" "${SCRIPT_DIR}/config/kitty/kitty.conf" "${HOME}/.config/kitty/kitty.conf"
+            install_config_item "Kitty Config" "${SCRIPT_DIR}/config/kitty/kitty.conf" "${HOME}/.config/kitty/kitty.conf"
+            install_config_item "Kitty Tab Bar" "${SCRIPT_DIR}/config/kitty/tab_bar.py" "${HOME}/.config/kitty/tab_bar.py"
             install_config_item "Starship" "${SCRIPT_DIR}/config/starship/starship.toml" "${HOME}/.config/starship.toml"
             install_config_item "Bash" "${SCRIPT_DIR}/config/bash/.bashrc" "${HOME}/.bashrc"
             ;;
         2)
             echo -e "\n${COLOR_BOLD}Installing Kitty configuration...${COLOR_RESET}"
-            install_config_item "Kitty" "${SCRIPT_DIR}/config/kitty/kitty.conf" "${HOME}/.config/kitty/kitty.conf"
+            install_config_item "Kitty Config" "${SCRIPT_DIR}/config/kitty/kitty.conf" "${HOME}/.config/kitty/kitty.conf"
+            install_config_item "Kitty Tab Bar" "${SCRIPT_DIR}/config/kitty/tab_bar.py" "${HOME}/.config/kitty/tab_bar.py"
             ;;
         3)
             echo -e "\n${COLOR_BOLD}Installing Starship configuration...${COLOR_RESET}"
@@ -165,7 +167,8 @@ install_both() {
     echo -e "${COLOR_BOLD}Performing Full Setup (Configurations + Scripts)...${COLOR_RESET}\n"
 
     echo -e "${COLOR_BOLD}1. Installing configurations...${COLOR_RESET}"
-    install_config_item "Kitty" "${SCRIPT_DIR}/config/kitty/kitty.conf" "${HOME}/.config/kitty/kitty.conf"
+    install_config_item "Kitty Config" "${SCRIPT_DIR}/config/kitty/kitty.conf" "${HOME}/.config/kitty/kitty.conf"
+    install_config_item "Kitty Tab Bar" "${SCRIPT_DIR}/config/kitty/tab_bar.py" "${HOME}/.config/kitty/tab_bar.py"
     install_config_item "Starship" "${SCRIPT_DIR}/config/starship/starship.toml" "${HOME}/.config/starship.toml"
     install_config_item "Bash" "${SCRIPT_DIR}/config/bash/.bashrc" "${HOME}/.bashrc"
 
