@@ -43,7 +43,9 @@ fc-cache -f ~/.local/share/fonts/Meslo
 LinuxScripts/
 ├── config/
 │   ├── bash/.bashrc             # → ~/.bashrc
-│   ├── kitty/kitty.conf         # → ~/.config/kitty/kitty.conf
+│   ├── kitty/
+│   │   ├── kitty.conf           # → ~/.config/kitty/kitty.conf
+│   │   └── tab_bar.py           # → ~/.config/kitty/tab_bar.py (custom status bar)
 │   └── starship/starship.toml   # → ~/.config/starship.toml
 ├── scripts/
 │   ├── update.sh                # Updates DNF, Flatpak, Starship, agy, Rust
@@ -55,7 +57,7 @@ LinuxScripts/
 
 ## Configurations
 
-- **Kitty** — Uses MesloLGS Nerd Font with clean optical prompt alignment and theme integration.
+- **Kitty** — Uses MesloLGS Nerd Font with custom slanted Powerline tabs and right-aligned live status widgets (Weather in Celsius, Battery level/charging status from `BAT0`, and 24-hour Clock).
 - **Starship** — Continuous Powerline capsule layout inspired by [Gruvbox-Rainbow](https://starship.rs/presets/gruvbox-rainbow), using Chuck's earthy **Kokiri** color palette. All 101 default Starship modules are preserved. Edit 8 hex variables at the top of [starship.toml](config/starship/starship.toml) to swap themes.
 - **Bash** — User environment variables, path exports, and Starship shell hook.
 
