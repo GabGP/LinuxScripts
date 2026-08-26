@@ -23,8 +23,9 @@ def _purge_stale_timers(keep_id: int | None = None) -> None:
     if boss is None:
         return
 
-    # Range around current timer space to purge any orphaned timer handles
-    for tid in range(1, 2000):
+    # Cancel all timer IDs up to keep_id + 500
+    max_id = (keep_id + 500) if keep_id is not None else 5000
+    for tid in range(1, max_id):
         if tid != keep_id:
             try:
                 remove_timer(tid)
@@ -55,20 +56,30 @@ def _schedule_next_minute_tick() -> None:
 
 def _on_minute_tick(timer_id: int | None) -> None:
     """Executed on exact minute boundary via Linux kernel timer interrupt."""
-    global _last_tick_minute
+    boss = get_boss()
+    if boss is None:
+        return
+
     now = datetime.datetime.now()
     current_minute = now.hour * 60 + now.minute
 
-    # Deduplication guard: kill any duplicate timer callbacks arriving in the same minute
-    if _last_tick_minute == current_minute:
+    last_minute = getattr(boss, "_custom_tabbar_last_tick_minute", -1)
+    active_id = getattr(boss, "_custom_tabbar_timer_id", None)
+
+    # Process-wide deduplication guard: kill any duplicate or stale timers
+    if last_minute == current_minute or (active_id is not None and active_id != timer_id):
         log_diag(f"Pruned duplicate/stale timer (id={timer_id}) for minute {current_minute}")
+        if timer_id is not None:
+            try:
+                remove_timer(timer_id)
+            except Exception:
+                pass
         return
 
-    _last_tick_minute = current_minute
+    boss._custom_tabbar_last_tick_minute = current_minute
     log_diag(f"Kernel timer interrupt fired (timer_id={timer_id}) for minute {now.strftime('%H:%M')}")
 
     try:
-        boss = get_boss()
         if boss:
             # 1. Recompute tab bar in memory
             boss.refresh_active_tab_bar()
@@ -93,9 +104,5 @@ def _on_minute_tick(timer_id: int | None) -> None:
 
 def init_timer() -> None:
     """Initializes the aligned one-shot interrupt chain."""
-    global _timer_registered
-    if _timer_registered:
-        return
-    _timer_registered = True
     log_diag("Initializing auto-refresh kernel timer chain")
     _schedule_next_minute_tick()
