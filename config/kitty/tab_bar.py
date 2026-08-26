@@ -4,7 +4,7 @@
 #  - Left: Powerline tabs matching kitty.conf style (angled / slanted / round)
 #  - Right: Live status widgets (Weather, Battery, Clock)
 #  - Colors: Dynamically inherited from Kitty active theme (current-theme.conf)
-#  - Auto-Refresh: Background thread triggers real-time updates for clock/battery
+#  - Timer: Aligned One-Shot Kernel Interrupt Timer (60 wakeups per hour)
 # ==============================================================================
 
 import datetime
@@ -13,7 +13,15 @@ import threading
 import time
 import urllib.request
 
-from kitty.fast_data_types import Screen, add_timer, get_boss, get_options, wcswidth
+from kitty.fast_data_types import (
+    Screen,
+    add_timer,
+    get_boss,
+    get_options,
+    mark_os_window_dirty,
+    wakeup_main_loop,
+    wcswidth,
+)
 from kitty.tab_bar import (
     DrawData,
     ExtraData,
@@ -23,37 +31,86 @@ from kitty.tab_bar import (
 )
 from kitty.utils import color_as_int
 
-# Cache & timing constants
-WEATHER_CACHE = "/tmp/kitty_weather.cache"
+# Resolve repository root directory and runtime cache directory
+_REAL_FILE = os.path.realpath(__file__)
+_REPO_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(_REAL_FILE)))
+CACHE_DIR = os.path.join(_REPO_ROOT, ".cache")
+
+try:
+    os.makedirs(CACHE_DIR, exist_ok=True)
+except Exception:
+    CACHE_DIR = "/tmp"
+
+WEATHER_CACHE = os.path.join(CACHE_DIR, "weather.cache")
+DIAG_LOG = os.path.join(CACHE_DIR, "tabbar.log")
 WEATHER_REFRESH_SECONDS = 1800  # 30 minutes
 
 
+def _log(msg: str) -> None:
+    try:
+        with open(DIAG_LOG, "a", encoding="utf-8") as f:
+            f.write(f"[{datetime.datetime.now().strftime('%H:%M:%S.%f')[:-3]}] {msg}\n")
+    except Exception:
+        pass
+
+
 # ------------------------------------------------------------------------------
-# 1. Native Kitty Event-Loop Timer (Real-time Clock & Battery Refresh)
+# 1. Aligned One-Shot Kernel Timer (Zero Busy-Polling / 60 Wakeups Per Hour)
 # ------------------------------------------------------------------------------
 _timer_registered = False
 
 
-def _timer_callback(timer_id: int | None) -> None:
+def _schedule_next_minute_tick() -> None:
+    """Calculates exact milliseconds to the next :00 mark and arms a one-shot kernel timer."""
+    now = datetime.datetime.now()
+    remaining = 60.0 - (now.second + now.microsecond / 1_000_000.0)
+    if remaining <= 0.05:
+        remaining = 60.0
+
+    _log(f"Scheduled next minute timer in {remaining:.3f}s")
+    try:
+        if get_boss() is not None:
+            # Arm a one-shot kernel timer (repeats=False)
+            add_timer(_on_minute_tick, remaining, False)
+    except Exception as e:
+        _log(f"Failed to arm add_timer: {e}")
+
+
+def _on_minute_tick(timer_id: int | None) -> None:
+    """Executed on exact minute boundary via Linux kernel timer interrupt."""
+    _log(f"Kernel timer interrupt fired (timer_id={timer_id})")
     try:
         boss = get_boss()
         if boss:
+            # 1. Recompute tab bar in memory
             boss.refresh_active_tab_bar()
-    except Exception:
-        pass
+
+            # 2. Mark active window dirty and trigger GPU redraw
+            w = boss.active_window
+            if w:
+                w.refresh()
+
+            # 3. Mark OS window dirty for Wayland/OpenGL compositor
+            for os_window_id in boss.os_window_map:
+                mark_os_window_dirty(os_window_id)
+
+            wakeup_main_loop()
+            _log("Triggered tab bar refresh + OS window dirty + wakeup_main_loop")
+    except Exception as e:
+        _log(f"Error in _on_minute_tick: {e}")
+    finally:
+        # Arm the next one-shot interrupt for the upcoming minute
+        _schedule_next_minute_tick()
 
 
 def _ensure_auto_refresh() -> None:
-    """Registers Kitty native C event-loop timer to refresh the tab bar dynamically."""
+    """Initializes the aligned one-shot interrupt chain on first render."""
     global _timer_registered
     if _timer_registered:
         return
     _timer_registered = True
-    try:
-        # Native Wayland/GLFW event loop timer (repeats every 1.0s)
-        add_timer(_timer_callback, 1.0, True)
-    except Exception:
-        pass
+    _log("Initializing auto-refresh kernel timer chain")
+    _schedule_next_minute_tick()
 
 
 # ------------------------------------------------------------------------------
@@ -162,7 +219,6 @@ def _draw_right_status(screen: Screen, draw_data: DrawData) -> None:
 
     # Palette accents if available from theme
     color_green = as_rgb(color_as_int(opts.color2)) if opts else active_bg
-    color_yellow = as_rgb(color_as_int(opts.color3)) if opts else active_bg
     color_blue = as_rgb(color_as_int(opts.color4)) if opts else inactive_bg
 
     def _fmt(text: str) -> str:
@@ -224,7 +280,7 @@ def _draw_right_status(screen: Screen, draw_data: DrawData) -> None:
         screen.cursor.bg = prev_bg
         screen.draw(sep_symbol)
 
-        # Draw widget content in bold for crisp readability
+        # Draw widget content in uniform bold for sharp contrast
         screen.cursor.bold = True
         screen.cursor.fg = fg
         screen.cursor.bg = bg
@@ -251,7 +307,7 @@ def draw_tab(
     is_last: bool,
     extra_data: ExtraData,
 ) -> int:
-    # Ensure live auto-refresher is running
+    # Ensure aligned minute timer is armed
     _ensure_auto_refresh()
 
     # Draw left tab with Kitty built-in powerline function
@@ -264,3 +320,7 @@ def draw_tab(
         _draw_right_status(screen, draw_data)
 
     return end
+
+
+# Initialize timer when module is loaded by Kitty
+_ensure_auto_refresh()

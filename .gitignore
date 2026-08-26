@@ -1,2 +1,8 @@
 # Local backup directories
 backups/
+
+# Runtime cache and logs
+.cache/
+*.log
+*.cache
+
