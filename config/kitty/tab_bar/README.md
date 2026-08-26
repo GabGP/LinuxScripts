@@ -9,6 +9,8 @@ A high-performance, modular Python extension for the [Kitty terminal](https://sw
 - **Left Tabs**: Native Powerline angled/slanted tabs driven by `tab_powerline_style` in `kitty.conf`.
 - **Right Status Widgets**:
   - ⛅ **Weather**: High-accuracy condition icon + temperature in Celsius (powered by **Open-Meteo** ECMWF/NOAA models).
+  - 󰍛 **RAM**: Active memory footprint in GB read directly from `/proc/meminfo`.
+  -  **CPU**: 1-minute kernel load average (`/proc/loadavg`) + hardware CPU package thermal sensor.
   - 󰂄 **Battery**: Real-time battery percentage and charging status read directly from Linux sysfs (`/sys/class/power_supply/`).
   -  **Clock**: Clean 24-hour time (`HH:MM`).
 - **Dynamic Theme Palette**: Automatically inherits background, foreground, active tab, and ANSI accent colors from your current Kitty theme.
@@ -29,8 +31,10 @@ tab_bar/
 ├── renderer.py           # Mirrored Powerline geometry, palette extractor, capsule drawer
 └── modules/              # Self-contained status widget providers
     ├── __init__.py       # Widget exports
-    ├── clock.py          # 24h Clock widget
     ├── battery.py        # Linux sysfs (/sys/class/power_supply/) reader
+    ├── clock.py          # 24h Clock widget
+    ├── cpu.py            # 1-minute load average & thermal reader
+    ├── ram.py            # /proc/meminfo memory reader
     └── weather.py        # Asynchronous Open-Meteo weather provider
 ```
 

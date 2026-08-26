@@ -11,7 +11,7 @@ from kitty.tab_bar import (
     draw_tab_with_powerline,
 )
 from kitty.utils import color_as_int
-from tab_bar.modules import get_battery, get_time, get_weather
+from tab_bar.modules import get_battery, get_cpu, get_ram, get_time, get_weather
 
 
 def _fmt(text: str) -> str:
@@ -36,12 +36,22 @@ def _draw_right_status(screen: Screen, draw_data: DrawData) -> None:
     if weather:
         widgets.append((_fmt(weather), inactive_fg, inactive_bg))
 
-    # 2. Battery Widget (Matching Inactive Tab Colors)
+    # 2. RAM Usage Widget (Matching Inactive Tab Colors)
+    ram = get_ram()
+    if ram:
+        widgets.append((_fmt(ram), inactive_fg, inactive_bg))
+
+    # 3. CPU Load & Temperature Widget (Matching Inactive Tab Colors)
+    cpu = get_cpu()
+    if cpu:
+        widgets.append((_fmt(cpu), inactive_fg, inactive_bg))
+
+    # 4. Battery Widget (Matching Inactive Tab Colors)
     battery = get_battery()
     if battery:
         widgets.append((_fmt(battery), inactive_fg, inactive_bg))
 
-    # 3. Clock Widget (Matching Active Tab Colors)
+    # 5. Clock Widget (Matching Active Tab Colors)
     time_str = get_time()
     widgets.append((_fmt(time_str), active_fg, active_bg))
 
