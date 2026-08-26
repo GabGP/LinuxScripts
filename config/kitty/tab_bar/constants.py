@@ -16,6 +16,7 @@ except Exception:
     CACHE_DIR = "/tmp"
 
 WEATHER_CACHE = os.path.join(CACHE_DIR, "weather.cache")
+GEO_CACHE = os.path.join(CACHE_DIR, "geo.cache")
 DIAG_LOG = os.path.join(CACHE_DIR, "tabbar.log")
 WEATHER_REFRESH_SECONDS = 1800  # 30 minutes
 

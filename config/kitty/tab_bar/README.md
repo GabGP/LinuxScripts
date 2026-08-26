@@ -8,10 +8,10 @@ A high-performance, modular Python extension for the [Kitty terminal](https://sw
 
 - **Left Tabs**: Native Powerline angled/slanted tabs driven by `tab_powerline_style` in `kitty.conf`.
 - **Right Status Widgets**:
-  - ⛅ **Weather**: Live condition icon + temperature in Celsius (cached asynchronously from `wttr.in`).
+  - ⛅ **Weather**: High-accuracy condition icon + temperature in Celsius (powered by **Open-Meteo** ECMWF/NOAA models).
   - 󰂄 **Battery**: Real-time battery percentage and charging status read directly from Linux sysfs (`/sys/class/power_supply/`).
   -  **Clock**: Clean 24-hour time (`HH:MM`).
-- **Dynamic Theme Palette**: Automatically inherits background, foreground, active tab, and ANSI accent colors (`opts.color2`, `opts.color4`) from your current Kitty theme.
+- **Dynamic Theme Palette**: Automatically inherits background, foreground, active tab, and ANSI accent colors from your current Kitty theme.
 - **Symmetrical Mirrored Glyphs**: Matches forward Powerline separators (`` / ``) on the left to exact inverted separators (`` / ``) on the right.
 - **Normalized Capsule Padding**: Consistent `[ icon value ]` internal spacing across all widgets.
 - **Zero Busy-Polling (60 wakeups/hr)**: Aligned one-shot kernel interrupt timer calculates exact fractional milliseconds to the upcoming `:00.000` minute boundary, sleeping the terminal completely when idle.
@@ -31,7 +31,7 @@ tab_bar/
     ├── __init__.py       # Widget exports
     ├── clock.py          # 24h Clock widget
     ├── battery.py        # Linux sysfs (/sys/class/power_supply/) reader
-    └── weather.py        # Asynchronous background weather cache daemon
+    └── weather.py        # Asynchronous Open-Meteo weather provider
 ```
 
 ---
