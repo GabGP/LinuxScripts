@@ -6,3 +6,7 @@ backups/
 *.log
 *.cache
 
+# Python byte-compiled cache
+__pycache__/
+*.pyc
+*.pyo
