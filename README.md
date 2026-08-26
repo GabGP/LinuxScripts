@@ -45,7 +45,8 @@ LinuxScripts/
 │   ├── bash/.bashrc             # → ~/.bashrc
 │   ├── kitty/
 │   │   ├── kitty.conf           # → ~/.config/kitty/kitty.conf
-│   │   └── tab_bar.py           # → ~/.config/kitty/tab_bar.py (custom status bar)
+│   │   ├── tab_bar.py           # → ~/.config/kitty/tab_bar.py (custom status bar entry point)
+│   │   └── tab_bar/             # Modular status bar package (timer, renderer, widgets)
 │   └── starship/starship.toml   # → ~/.config/starship.toml
 ├── scripts/
 │   ├── lib/                     # Shared modular libraries (colors, logger, backup)
@@ -61,7 +62,7 @@ LinuxScripts/
 
 ## Configurations
 
-- **Kitty** — Uses MesloLGS Nerd Font with custom slanted Powerline tabs and right-aligned live status widgets (Weather in Celsius, Battery level/charging status from `BAT0`, and 24-hour Clock).
+- **Kitty** — Uses MesloLGS Nerd Font with custom Powerline tabs and right-aligned live status widgets (Weather in Celsius, Battery level/status, and 24-hour Clock). Powered by an aligned zero-polling kernel interrupt timer. See [tab_bar/README.md](config/kitty/tab_bar/README.md) for architecture and widget development guide.
 - **Starship** — Continuous Powerline capsule layout inspired by [Gruvbox-Rainbow](https://starship.rs/presets/gruvbox-rainbow), using Chuck's earthy **Kokiri** color palette. All 101 default Starship modules are preserved. Edit 8 hex variables at the top of [starship.toml](config/starship/starship.toml) to swap themes.
 - **Bash** — User environment variables, path exports, and Starship shell hook.
 
