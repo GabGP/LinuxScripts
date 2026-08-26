@@ -20,77 +20,79 @@ def _fmt(text: str) -> str:
 
 
 def _draw_right_status(screen: Screen, draw_data: DrawData) -> None:
-    """Renders right-aligned status widgets with mirrored Powerline glyphs."""
-    try:
-        opts = get_options()
-    except Exception:
-        opts = None
-
-    # Inherit colors directly from Kitty theme palette
+    """Renders right-aligned status widgets with seamless Powerline transitions matching left tabs."""
+    # Inherit colors directly from Kitty theme palette matching left tabs
     default_bg = as_rgb(int(draw_data.default_bg))
     active_bg = as_rgb(int(draw_data.active_bg))
     active_fg = as_rgb(int(draw_data.active_fg))
     inactive_bg = as_rgb(int(draw_data.inactive_bg))
     inactive_fg = as_rgb(int(draw_data.inactive_fg))
 
-    # Palette accents if available from theme
-    color_green = as_rgb(color_as_int(opts.color2)) if opts else active_bg
-    color_blue = as_rgb(color_as_int(opts.color4)) if opts else inactive_bg
-
     # Build status widgets: (text, fg_color, bg_color)
     widgets = []
 
-    # 1. Weather Widget (Theme Blue / Inactive Accent)
+    # 1. Weather Widget (Matching Inactive Tab Colors)
     weather = get_weather()
     if weather:
-        widgets.append((_fmt(weather), inactive_fg, color_blue))
+        widgets.append((_fmt(weather), inactive_fg, inactive_bg))
 
-    # 2. Battery Widget (Theme Green Accent)
+    # 2. Battery Widget (Matching Inactive Tab Colors)
     battery = get_battery()
     if battery:
-        widgets.append((_fmt(battery), active_fg, color_green))
+        widgets.append((_fmt(battery), inactive_fg, inactive_bg))
 
-    # 3. Clock Widget (Theme Active Tab Colors)
+    # 3. Clock Widget (Matching Active Tab Colors)
     time_str = get_time()
     widgets.append((_fmt(time_str), active_fg, active_bg))
 
     if not widgets:
         return
 
-    # Mirror the left powerline separator symbol for right-aligned widgets
-    # Left: '' (angled)  -> Right: ''
-    # Left: '' (slanted) -> Right: ''
-    # Left: '' (round)   -> Right: ''
+    # Mirror the left powerline separator symbols (hard and soft)
+    # Left: '' / '' (angled)  -> Right: '' / ''
+    # Left: '' / '╱' (slanted) -> Right: '' / '╱'
+    # Left: '' / '' (round)   -> Right: '' / ''
     if draw_data.powerline_style == "slanted":
         sep_symbol = ""
+        soft_sep_symbol = "╱"
     elif draw_data.powerline_style == "round":
         sep_symbol = ""
+        soft_sep_symbol = ""
     else:  # angled (default)
         sep_symbol = ""
+        soft_sep_symbol = ""
 
-    # Calculate total width required on screen
+    # Calculate total width required for seamless transitions
     total_width = 0
-    for text, _, _ in widgets:
-        total_width += wcswidth(text) + 1  # +1 for powerline separator
+    prev_bg = default_bg
+    for text, _, bg in widgets:
+        total_width += 1 + wcswidth(text)
+        prev_bg = bg
 
     available_space = screen.columns - screen.cursor.x
     if available_space <= total_width:
         return
 
-    # Fill gap between left tabs and right widgets
+    # Fill gap between left tabs and right status bar
     gap = screen.columns - total_width - screen.cursor.x
     if gap > 0:
         screen.cursor.bg = default_bg
         screen.cursor.fg = default_bg
         screen.draw(" " * gap)
 
-    # Draw each widget capsule
+    # Draw each widget with seamless powerline and soft separators
     prev_bg = default_bg
     for text, fg, bg in widgets:
-        # Draw mirrored powerline separator
-        screen.cursor.fg = bg
-        screen.cursor.bg = prev_bg
-        screen.draw(sep_symbol)
+        if bg == prev_bg:
+            # Seamless soft separator matching Kitty left tab styling
+            screen.cursor.fg = default_bg
+            screen.cursor.bg = bg
+            screen.draw(soft_sep_symbol)
+        else:
+            # Seamless hard powerline arrow transition
+            screen.cursor.fg = bg
+            screen.cursor.bg = prev_bg
+            screen.draw(sep_symbol)
 
         # Draw widget content in uniform bold for sharp contrast
         screen.cursor.bold = True
