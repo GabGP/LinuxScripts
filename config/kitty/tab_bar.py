@@ -19,6 +19,7 @@ from kitty.fast_data_types import (
     get_boss,
     get_options,
     mark_os_window_dirty,
+    remove_timer,
     wakeup_main_loop,
     wcswidth,
 )
@@ -55,13 +56,33 @@ def _log(msg: str) -> None:
 
 
 # ------------------------------------------------------------------------------
-# 1. Aligned One-Shot Kernel Timer (Zero Busy-Polling / 60 Wakeups Per Hour)
+# 1. Aligned One-Shot Kernel Timer (Zero Busy-Polling / Strictly 1 Timer Process-wide)
 # ------------------------------------------------------------------------------
 _timer_registered = False
+_last_tick_minute = -1
+
+
+def _purge_stale_timers(keep_id: int | None = None) -> None:
+    """Explicitly cancels all zombie timer IDs from previous config reloads."""
+    boss = get_boss()
+    if boss is None:
+        return
+
+    # Range around current timer space to purge any orphaned timer handles
+    for tid in range(1, 2000):
+        if tid != keep_id:
+            try:
+                remove_timer(tid)
+            except Exception:
+                pass
 
 
 def _schedule_next_minute_tick() -> None:
-    """Calculates exact milliseconds to the next :00 mark and arms a one-shot kernel timer."""
+    """Calculates exact milliseconds to the next :00 mark and arms a single one-shot kernel timer."""
+    boss = get_boss()
+    if boss is None:
+        return
+
     now = datetime.datetime.now()
     remaining = 60.0 - (now.second + now.microsecond / 1_000_000.0)
     if remaining <= 0.05:
@@ -69,16 +90,28 @@ def _schedule_next_minute_tick() -> None:
 
     _log(f"Scheduled next minute timer in {remaining:.3f}s")
     try:
-        if get_boss() is not None:
-            # Arm a one-shot kernel timer (repeats=False)
-            add_timer(_on_minute_tick, remaining, False)
+        new_timer = add_timer(_on_minute_tick, remaining, False)
+        boss._custom_tabbar_timer_id = new_timer
+        # Wipe all zombie timers from previous reloads, keeping strictly new_timer
+        _purge_stale_timers(keep_id=new_timer)
     except Exception as e:
         _log(f"Failed to arm add_timer: {e}")
 
 
 def _on_minute_tick(timer_id: int | None) -> None:
     """Executed on exact minute boundary via Linux kernel timer interrupt."""
-    _log(f"Kernel timer interrupt fired (timer_id={timer_id})")
+    global _last_tick_minute
+    now = datetime.datetime.now()
+    current_minute = now.hour * 60 + now.minute
+
+    # Deduplication guard: kill any duplicate timer callbacks arriving in the same minute
+    if _last_tick_minute == current_minute:
+        _log(f"Pruned duplicate/stale timer (id={timer_id}) for minute {current_minute}")
+        return
+
+    _last_tick_minute = current_minute
+    _log(f"Kernel timer interrupt fired (timer_id={timer_id}) for minute {now.strftime('%H:%M')}")
+
     try:
         boss = get_boss()
         if boss:
@@ -98,9 +131,9 @@ def _on_minute_tick(timer_id: int | None) -> None:
             _log("Triggered tab bar refresh + OS window dirty + wakeup_main_loop")
     except Exception as e:
         _log(f"Error in _on_minute_tick: {e}")
-    finally:
-        # Arm the next one-shot interrupt for the upcoming minute
-        _schedule_next_minute_tick()
+
+    # Arm strictly ONE single next timer for the upcoming minute
+    _schedule_next_minute_tick()
 
 
 def _ensure_auto_refresh() -> None:
