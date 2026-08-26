@@ -24,7 +24,7 @@ def get_battery() -> str:
                         with open(stat_path, "r", encoding="utf-8") as f:
                             stat = f.read().strip().lower()
 
-                    is_charging = "charging" in stat
+                    is_charging = stat == "charging"
                     if is_charging:
                         icon = "󰂄"
                     elif cap >= 90:
