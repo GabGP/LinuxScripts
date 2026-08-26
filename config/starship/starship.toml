@@ -126,7 +126,7 @@ color_bg3    = '#4a7a7a' # Kokiri color6: Forest Teal (Segment 3: Git & VCS)
 color_bg4    = '#4a6a8a' # Kokiri color4: Slate Blue (Segment 4: Languages & Tools)
 color_bg5    = '#7a5a7a' # Kokiri color5: Plum Purple (Segment 5: Containers & Cloud)
 color_bg6    = '#4a7a4a' # Kokiri color2: Forest Green (Segment 6: Time & Diagnostics)
-color_accent = '#d4a420' # Kokiri color9: Bright Gold (Accent: Duration & Errors)
+color_accent = '#a0c080' # Kokiri color0: Bright Teal (Accent: Duration & Errors)
 
 # ------------------------------------------------------------------------------
 # 1. System, User & Host Modules (Segment 1: color_bg1)
