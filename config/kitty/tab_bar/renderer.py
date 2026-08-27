@@ -2,6 +2,8 @@
 #  config/kitty/tab_bar/renderer.py - Powerline Tab Bar & Widget Renderer
 # ==============================================================================
 
+import os
+import re
 from typing import List, Tuple
 from kitty.fast_data_types import Screen, wcswidth
 from kitty.tab_bar import (
@@ -17,6 +19,70 @@ from tab_bar.modules import get_battery, get_cpu, get_ram, get_time, get_weather
 def _fmt(text: str) -> str:
     """Normalizes internal whitespace to guarantee strict uniform padding."""
     return f" {' '.join(text.split())} "
+
+
+def _format_tab_title(title: str, max_depth: int = 3) -> str:
+    """
+    Formats and truncates a tab title to at most `max_depth` directory levels,
+    replicating Starship's directory segment truncation behavior.
+    """
+    if not title:
+        return ""
+
+    # 1. Strip user@hostname prefix (e.g. 'admin@fedora: ')
+    title = re.sub(r"^[a-zA-Z0-9_\-\.]+@[a-zA-Z0-9_\-\.]+:\s*", "", title).strip()
+
+    # 2. Detect running command prefix
+    cmd_prefix = ""
+    target_path = title
+    if " " in title and not os.path.exists(title):
+        parts = title.split(" ", 1)
+        known_cmds = (
+            "nvim",
+            "vim",
+            "vi",
+            "nano",
+            "emacs",
+            "git",
+            "python",
+            "python3",
+            "bash",
+            "zsh",
+            "cargo",
+            "less",
+            "man",
+            "ssh",
+        )
+        if parts[0] in known_cmds:
+            cmd_prefix = f"{parts[0]}: "
+            target_path = parts[1].strip()
+
+    # 3. Normalize home directory
+    home = os.path.expanduser("~")
+    if target_path.startswith(home):
+        target_path = "~" + target_path[len(home):]
+
+    # 4. Truncate path segments if depth exceeds max_depth
+    if "/" in target_path or target_path.startswith("~"):
+        is_home_rooted = target_path.startswith("~/")
+        raw_path = target_path[2:] if is_home_rooted else target_path.lstrip("/")
+        segments = [s for s in raw_path.split("/") if s]
+
+        if is_home_rooted:
+            if not segments:
+                formatted_path = "~"
+            elif len(segments) <= max_depth - 1:
+                formatted_path = "~/" + "/".join(segments)
+            else:
+                formatted_path = "…/" + "/".join(segments[-max_depth:])
+        else:
+            if len(segments) <= max_depth:
+                formatted_path = "/" + "/".join(segments) if target_path.startswith("/") else "/".join(segments)
+            else:
+                formatted_path = "…/" + "/".join(segments[-max_depth:])
+        return f"{cmd_prefix}{formatted_path}"
+
+    return f"{cmd_prefix}{target_path}"
 
 
 def _build_widgets(draw_data: DrawData) -> List[Tuple[str, int, int]]:
@@ -140,6 +206,10 @@ def draw_tab(
     extra_data: ExtraData,
 ) -> int:
     """Main tab drawing callback executed by Kitty for each tab."""
+    # Clean and truncate title to 3 directory levels
+    clean_title = _format_tab_title(tab.title, max_depth=3)
+    tab = tab._replace(title=clean_title)
+
     # Reserve guaranteed space for right status widgets so long tab titles never crowd them out
     # Calculate required width of all active widgets (~50 columns)
     status_width = _calc_widgets_width(_build_widgets(draw_data))
