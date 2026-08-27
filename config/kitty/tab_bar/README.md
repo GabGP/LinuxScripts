@@ -7,6 +7,7 @@ A high-performance, modular Python extension for the [Kitty terminal](https://sw
 ## ✨ Features
 
 - **Left Tabs**: Native Powerline angled/slanted tabs driven by `tab_powerline_style` in `kitty.conf`.
+- **3-Level Path Truncation**: Automatically trims left tab titles to at most 3 directory levels (`…/kitty/tab_bar/modules`), strips shell boilerplate (`admin@fedora:`), normalizes `$HOME` to `~`, and preserves interactive command prefixes (`nvim: …`, `cargo: …`, `git: …`).
 - **Right Status Widgets**:
   - ⛅ **Weather**: High-accuracy condition icon + temperature in Celsius (powered by **Open-Meteo** ECMWF/NOAA models).
   - 󰍛 **RAM**: Active memory footprint in GB read directly from `/proc/meminfo`.
