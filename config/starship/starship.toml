@@ -115,18 +115,20 @@ $status\
 $line_break$character"""
 
 # ==============================================================================
-#  Standardized Theme Palette (Kokiri by Chuck)
-#  To change themes in the future, ONLY edit the 8 hex codes below!
+#  Color Palette Configuration
+#  Defines the semantic colors used throughout all prompt segments.
 # ==============================================================================
 [palettes.kokiri]
-color_fg0    = '#1a1005' # Deep Dark Espresso (High-contrast text)
-color_bg1    = '#b8860b' # Kokiri color1: Dark Gold (Segment 1: OS, User, Host)
-color_bg2    = '#a07838' # Kokiri color11: Bright Amber (Segment 2: Directory)
-color_bg3    = '#4a7a7a' # Kokiri color6: Forest Teal (Segment 3: Git & VCS)
-color_bg4    = '#4a6a8a' # Kokiri color4: Slate Blue (Segment 4: Languages & Tools)
-color_bg5    = '#7a5a7a' # Kokiri color5: Plum Purple (Segment 5: Containers & Cloud)
-color_bg6    = '#4a7a4a' # Kokiri color2: Forest Green (Segment 6: Time & Diagnostics)
-color_accent = '#a0c080' # Kokiri color0: Bright Teal (Accent: Duration & Errors)
+color_fg0      = '#1a1005' # Primary text (High-contrast foreground)
+color_bg1      = '#b8860b' # Segment 1: System, OS & User
+color_bg2      = '#a07838' # Segment 2: Directory & Navigation
+color_bg3      = '#4a7a7a' # Segment 3: Version Control & VCS
+color_bg4      = '#4a6a8a' # Segment 4: Programming Languages & Tools
+color_bg5      = '#7a5a7a' # Segment 5: Containers, Environments & Cloud
+color_bg6      = '#4a7a4a' # Segment 6: Diagnostics, Metrics & Time
+color_duration = '#a0c080' # Command execution duration accent
+color_error    = '#c94f47' # Command error & failure status accent
+color_success  = '#4a7a4a' # Prompt character success symbol
 
 # ------------------------------------------------------------------------------
 # 1. System, User & Host Modules (Segment 1: color_bg1)
@@ -517,12 +519,12 @@ format = '[  $time ]($style)'
 
 [cmd_duration]
 min_time = 2_000
-style = "bold fg:color_accent bg:color_bg6"
+style = "bold fg:color_duration bg:color_bg6"
 format = '[󱎫 $duration ]($style)'
 
 [status]
 disabled = false
-style = "bold fg:color_accent bg:color_bg6"
+style = "bold fg:color_error bg:color_bg6"
 format = '[✖ $status ]($style)'
 
 # ------------------------------------------------------------------------------
@@ -533,6 +535,6 @@ disabled = false
 
 [character]
 disabled = false
-success_symbol = '[](bold fg:color_bg6)'
-error_symbol = '[](bold fg:color_accent)'
-vimcmd_symbol = '[](bold fg:color_bg6)'
+success_symbol = '[](bold fg:color_success)'
+error_symbol = '[](bold fg:color_error)'
+vimcmd_symbol = '[](bold fg:color_success)'
