@@ -3,7 +3,7 @@
 # ==============================================================================
 #  Active Palette & Prompt Layout (Root Settings)
 # ==============================================================================
-palette = 'kokiri'
+palette = 'tokyo_night'
 
 format = """
 [](color_bg1)\
@@ -118,17 +118,17 @@ $line_break$character"""
 #  Color Palette Configuration
 #  Defines the semantic colors used throughout all prompt segments.
 # ==============================================================================
-[palettes.kokiri]
-color_fg0      = '#1a1005' # Primary text (High-contrast foreground)
-color_bg1      = '#b8860b' # Segment 1: System, OS & User
-color_bg2      = '#a07838' # Segment 2: Directory & Navigation
-color_bg3      = '#4a7a7a' # Segment 3: Version Control & VCS
-color_bg4      = '#4a6a8a' # Segment 4: Programming Languages & Tools
-color_bg5      = '#7a5a7a' # Segment 5: Containers, Environments & Cloud
-color_bg6      = '#4a7a4a' # Segment 6: Diagnostics, Metrics & Time
-color_duration = '#a0c080' # Command execution duration accent
-color_error    = '#c94f47' # Command error & failure status accent
-color_success  = '#4a7a4a' # Prompt character success symbol
+[palettes.tokyo_night]
+color_fg0      = '#c0caf5' # Tokyo Night Foreground (Light high-contrast text)
+color_bg1      = '#a3aed2' # Segment 1: System, OS & User (Periwinkle Silver)
+color_bg2      = '#769ff0' # Segment 2: Directory & Navigation (Tokyo Blue)
+color_bg3      = '#394260' # Segment 3: Version Control & VCS (Dark Slate Blue)
+color_bg4      = '#212736' # Segment 4: Programming Languages & Tools (Deep Midnight)
+color_bg5      = '#2d2042' # Segment 5: Containers, Environments & Cloud (Dark Plum)
+color_bg6      = '#1d2230' # Segment 6: Diagnostics, Metrics & Time (Night Dark)
+color_duration = '#e0af68' # Command execution duration accent (Tokyo Yellow/Gold)
+color_error    = '#f7768e' # Command error & failure status accent (Tokyo Red)
+color_success  = '#769ff0' # Prompt character success symbol (Tokyo Blue)
 
 # ------------------------------------------------------------------------------
 # 1. System, User & Host Modules (Segment 1: color_bg1)
