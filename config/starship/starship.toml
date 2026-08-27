@@ -169,21 +169,21 @@ format = "[ $user ]($style)"
 [hostname]
 ssh_only = true
 style = "bold fg:color_fg0 bg:color_bg1"
-format = "[ @$hostname ]($style)"
+format = "[@$hostname ]($style)"
 
 [sudo]
 disabled = false
 style = "bold fg:color_fg0 bg:color_bg1"
-format = "[ 󰌆 ]($style)"
+format = "[󰌆 ]($style)"
 
 [localip]
 ssh_only = true
 style = "bold fg:color_fg0 bg:color_bg1"
-format = "[ 󰩟 $localipv4 ]($style)"
+format = "[󰩟 $localipv4 ]($style)"
 
 [shlvl]
 style = "bold fg:color_fg0 bg:color_bg1"
-format = "[ 󱆃 $shlvl ]($style)"
+format = "[󱆃 $shlvl ]($style)"
 
 # ------------------------------------------------------------------------------
 # 2. Directory Module (Segment 2: color_bg2)
@@ -211,16 +211,16 @@ format = '[ $symbol $branch ]($style)'
 
 [git_status]
 style = "bold fg:color_fg0 bg:color_bg3"
-format = '[ ($all_status$ahead_behind) ]($style)'
+format = '[($all_status$ahead_behind )]($style)'
 
 [git_state]
 style = "bold fg:color_fg0 bg:color_bg3"
-format = '[ ($state( $progress_current/$progress_total)) ]($style)'
+format = '[($state( $progress_current/$progress_total) )]($style)'
 
 [git_metrics]
 added_style = "bold fg:color_fg0 bg:color_bg3"
 deleted_style = "bold fg:color_fg0 bg:color_bg3"
-format = '([ +$added ]($added_style))([ -$deleted ]($deleted_style))'
+format = '([+$added ]($added_style))([-$deleted ]($deleted_style))'
 
 [hg_branch]
 symbol = ""
@@ -518,12 +518,12 @@ format = '[  $time ]($style)'
 [cmd_duration]
 min_time = 2_000
 style = "bold fg:color_accent bg:color_bg6"
-format = '[ 󱎫 $duration ]($style)'
+format = '[󱎫 $duration ]($style)'
 
 [status]
 disabled = false
 style = "bold fg:color_accent bg:color_bg6"
-format = '[ ✖ $status ]($style)'
+format = '[✖ $status ]($style)'
 
 # ------------------------------------------------------------------------------
 # 7. Prompt Character
