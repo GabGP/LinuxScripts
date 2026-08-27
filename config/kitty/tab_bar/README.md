@@ -25,18 +25,25 @@ A high-performance, modular Python extension for the [Kitty terminal](https://sw
 
 ```text
 tab_bar/
-├── README.md             # This documentation
-├── __init__.py           # Package marker
-├── constants.py          # Paths (.cache/), timing intervals, diagnostic logger
-├── timer.py              # Kernel interrupt scheduler, stale timer purger, frame dispatcher
-├── renderer.py           # Mirrored Powerline geometry, palette extractor, capsule drawer
-└── modules/              # Self-contained status widget providers
-    ├── __init__.py       # Widget exports
-    ├── battery.py        # Linux sysfs (/sys/class/power_supply/) reader
-    ├── clock.py          # 24h Clock widget
-    ├── cpu.py            # 1-minute load average & thermal reader
-    ├── ram.py            # /proc/meminfo memory reader
-    └── weather.py        # Asynchronous Open-Meteo weather provider
+├── README.md                 # This documentation
+├── __init__.py               # Package marker
+├── constants.py              # Paths (.cache/), timing intervals, diagnostic logger
+├── title.py                  # Starship 3-level path truncation & command prefix detection
+├── widgets.py                # Status widget collector, theme palette extractor, width calc
+├── renderer.py               # Mirrored Powerline geometry, space reservation, Kitty draw_tab hook
+├── timer.py                  # Minute boundary math & aligned C-timer interrupt scheduler
+├── dispatcher.py             # Multi-window compositor dirty flags & event loop wakeups
+└── modules/                  # Self-contained status widget providers
+    ├── __init__.py           # Widget exports
+    ├── battery.py            # Linux sysfs (/sys/class/power_supply/) reader
+    ├── clock.py              # 24-hour Clock widget
+    ├── cpu.py                # 1-minute load average & thermal sensor reader
+    ├── ram.py                # /proc/meminfo memory reader
+    └── weather/              # Modular Open-Meteo weather provider package
+        ├── __init__.py       # Public get_weather() facade & cache reader
+        ├── wmo.py            # WMO weather code constants to emoji mapping
+        ├── geo.py            # GeoIP location resolver & coordinate cache
+        └── client.py         # Async HTTP fetcher with rate limiting & circuit breakers
 ```
 
 ---
@@ -45,15 +52,17 @@ tab_bar/
 
 1. **Kitty Loader (`tab_bar.py`)**:
    Kitty evaluates `~/.config/kitty/tab_bar.py` via `tab_bar_style custom`. The entry point clears `sys.modules` for hot reloading and delegates rendering to `tab_bar.renderer.draw_tab` and timer scheduling to `tab_bar.timer.init_timer`.
-2. **Aligned Kernel Timer (`tab_bar/timer.py`)**:
+2. **Aligned Kernel Timer & Dispatcher (`tab_bar/timer.py` & `tab_bar/dispatcher.py`)**:
    Uses `kitty.fast_data_types.add_timer(..., remaining, False)` to register a native one-shot C timer into the Wayland/GLFW event loop. When the `:00.000` minute mark arrives:
    - Updates the tab bar buffer in memory (`boss.refresh_active_tab_bar()`).
    - Marks the window screen buffer as dirty (`boss.active_window.refresh()`).
-   - Marks the OS window frame dirty (`mark_os_window_dirty()`).
+   - Marks all OS window frames dirty (`mark_os_window_dirty()`).
    - Wakes the Wayland/GLFW event loop immediately (`wakeup_main_loop()`).
    - Arms the next one-shot timer for the next minute boundary.
-3. **Widget Rendering (`tab_bar/renderer.py`)**:
-   Calculates terminal columns via `screen.columns` and `wcswidth`, drawing right-aligned mirrored Powerline capsules with crisp bold formatting.
+3. **Tab Title Formatting (`tab_bar/title.py`)**:
+   Cleans shell prefix boilerplate and truncates nested directory paths deeper than 3 levels to `…/dir1/dir2/dir3`.
+4. **Widget Aggregation & Rendering (`tab_bar/widgets.py` & `tab_bar/renderer.py`)**:
+   Extracts current theme colors dynamically (`DrawData`), calculates column spacing, and draws right-aligned mirrored Powerline capsules.
 
 ---
 
