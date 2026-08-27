@@ -62,7 +62,7 @@ LinuxScripts/
 
 ## Configurations
 
-- **Kitty** — Uses MesloLGS Nerd Font with custom Powerline tabs and right-aligned live status widgets (Weather in Celsius, Battery level/status, and 24-hour Clock). Powered by an aligned zero-polling kernel interrupt timer. See [tab_bar/README.md](config/kitty/tab_bar/README.md) for architecture and widget development guide.
+- **Kitty** — Uses MesloLGS Nerd Font with custom Powerline tabs and right-aligned live status widgets (Open-Meteo Weather, RAM usage, CPU load & temperature, Battery status, and 24-hour Clock), plus F1 `btop` overlay shortcut. Powered by an aligned zero-polling kernel interrupt timer. See [tab_bar/README.md](config/kitty/tab_bar/README.md) for architecture and widget development guide.
 - **Starship** — Continuous Powerline capsule layout inspired by [Gruvbox-Rainbow](https://starship.rs/presets/gruvbox-rainbow), using Chuck's earthy **Kokiri** color palette. All 101 default Starship modules are preserved. Edit 8 hex variables at the top of [starship.toml](config/starship/starship.toml) to swap themes.
 - **Bash** — User environment variables, path exports, and Starship shell hook.
 
