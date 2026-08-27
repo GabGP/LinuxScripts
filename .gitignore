@@ -1,5 +1,6 @@
 # Local backup directories
 backups/
+.bak
 
 # Runtime cache and logs
 .cache/
