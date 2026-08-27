@@ -116,26 +116,44 @@ $line_break$character"""
 
 # ==============================================================================
 #  Color Palette Configuration
-#  Defines the semantic colors used throughout all prompt segments.
+#  Defines the paired semantic colors (fg/bg) for each prompt segment.
 # ==============================================================================
 [palettes.tokyo_night]
-color_fg0      = '#c0caf5' # Tokyo Night Foreground (Light high-contrast text)
-color_bg1      = '#a3aed2' # Segment 1: System, OS & User (Periwinkle Silver)
-color_bg2      = '#769ff0' # Segment 2: Directory & Navigation (Tokyo Blue)
-color_bg3      = '#394260' # Segment 3: Version Control & VCS (Dark Slate Blue)
-color_bg4      = '#212736' # Segment 4: Programming Languages & Tools (Deep Midnight)
-color_bg5      = '#2d2042' # Segment 5: Containers, Environments & Cloud (Dark Plum)
-color_bg6      = '#1d2230' # Segment 6: Diagnostics, Metrics & Time (Night Dark)
-color_duration = '#e0af68' # Command execution duration accent (Tokyo Yellow/Gold)
-color_error    = '#f7768e' # Command error & failure status accent (Tokyo Red)
+# Segment 1: System, OS & User (Luminous Periwinkle with Dark Tokyo Ink)
+color_bg1      = '#a3aed2'
+color_fg1      = '#15161e' # Deep Tokyo Ink (Contrast: 9.5:1)
+
+# Segment 2: Directory & Navigation (Tokyo Blue with Dark Tokyo Ink)
+color_bg2      = '#769ff0'
+color_fg2      = '#15161e' # Deep Tokyo Ink (Contrast: 7.8:1)
+
+# Segment 3: Version Control & VCS (Dark Twilight Slate with Neon Cyan)
+color_bg3      = '#394260'
+color_fg3      = '#7dcfff' # Tokyo Electric Cyan (Contrast: 7.2:1)
+
+# Segment 4: Programming Languages & Tools (Deep Midnight with Tokyo Sky Blue)
+color_bg4      = '#212736'
+color_fg4      = '#769ff0' # Tokyo Light Blue (Contrast: 8.5:1)
+
+# Segment 5: Containers, Environments & Cloud (Dark Plum with Radiant Lilac)
+color_bg5      = '#2d2042'
+color_fg5      = '#bb9af7' # Tokyo Magenta / Lilac (Contrast: 7.8:1)
+
+# Segment 6: Diagnostics, Metrics & Time (Night Dark with Periwinkle Silver)
+color_bg6      = '#1d2230'
+color_fg6      = '#a0a9cb' # Tokyo Muted Silver (Contrast: 8.4:1)
+
+# Functional Telemetry & Prompt Accents
+color_duration = '#e0af68' # Command execution duration accent (Tokyo Warm Gold)
+color_error    = '#f7768e' # Command error & failure status accent (Tokyo Vibrant Red)
 color_success  = '#769ff0' # Prompt character success symbol (Tokyo Blue)
 
 # ------------------------------------------------------------------------------
-# 1. System, User & Host Modules (Segment 1: color_bg1)
+# 1. System, User & Host Modules (Segment 1: color_bg1 / color_fg1)
 # ------------------------------------------------------------------------------
 [os]
 disabled = false
-style = "bold fg:color_fg0 bg:color_bg1"
+style = "bold fg:color_fg1 bg:color_bg1"
 format = "[ $symbol]($style)"
 
 [os.symbols]
@@ -164,34 +182,34 @@ Pop = ""
 
 [username]
 show_always = true
-style_user = "bold fg:color_fg0 bg:color_bg1"
-style_root = "bold fg:color_fg0 bg:color_bg1"
+style_user = "bold fg:color_fg1 bg:color_bg1"
+style_root = "bold fg:color_fg1 bg:color_bg1"
 format = "[ $user ]($style)"
 
 [hostname]
 ssh_only = true
-style = "bold fg:color_fg0 bg:color_bg1"
+style = "bold fg:color_fg1 bg:color_bg1"
 format = "[@$hostname ]($style)"
 
 [sudo]
 disabled = false
-style = "bold fg:color_fg0 bg:color_bg1"
+style = "bold fg:color_fg1 bg:color_bg1"
 format = "[󰌆 ]($style)"
 
 [localip]
 ssh_only = true
-style = "bold fg:color_fg0 bg:color_bg1"
+style = "bold fg:color_fg1 bg:color_bg1"
 format = "[󰩟 $localipv4 ]($style)"
 
 [shlvl]
-style = "bold fg:color_fg0 bg:color_bg1"
+style = "bold fg:color_fg1 bg:color_bg1"
 format = "[󱆃 $shlvl ]($style)"
 
 # ------------------------------------------------------------------------------
-# 2. Directory Module (Segment 2: color_bg2)
+# 2. Directory Module (Segment 2: color_bg2 / color_fg2)
 # ------------------------------------------------------------------------------
 [directory]
-style = "bold fg:color_fg0 bg:color_bg2"
+style = "bold fg:color_fg2 bg:color_bg2"
 format = "[ $path ]($style)"
 truncation_length = 3
 truncation_symbol = "…/"
@@ -204,317 +222,317 @@ truncation_symbol = "…/"
 "Developer" = "󰲋 "
 
 # ------------------------------------------------------------------------------
-# 3. Version Control Modules (Segment 3: color_bg3)
+# 3. Version Control Modules (Segment 3: color_bg3 / color_fg3)
 # ------------------------------------------------------------------------------
 [git_branch]
 symbol = ""
-style = "bold fg:color_fg0 bg:color_bg3"
+style = "bold fg:color_fg3 bg:color_bg3"
 format = '[ $symbol $branch ]($style)'
 
 [git_status]
-style = "bold fg:color_fg0 bg:color_bg3"
+style = "bold fg:color_fg3 bg:color_bg3"
 format = '[($all_status$ahead_behind )]($style)'
 
 [git_state]
-style = "bold fg:color_fg0 bg:color_bg3"
+style = "bold fg:color_fg3 bg:color_bg3"
 format = '[($state( $progress_current/$progress_total) )]($style)'
 
 [git_metrics]
-added_style = "bold fg:color_fg0 bg:color_bg3"
-deleted_style = "bold fg:color_fg0 bg:color_bg3"
+added_style = "bold fg:color_fg3 bg:color_bg3"
+deleted_style = "bold fg:color_fg3 bg:color_bg3"
 format = '([+$added ]($added_style))([-$deleted ]($deleted_style))'
 
 [hg_branch]
 symbol = ""
-style = "bold fg:color_fg0 bg:color_bg3"
+style = "bold fg:color_fg3 bg:color_bg3"
 format = '[ $symbol $branch ]($style)'
 
 # ------------------------------------------------------------------------------
-# 4. Programming Languages & Tools (Segment 4: color_bg4)
+# 4. Programming Languages & Tools (Segment 4: color_bg4 / color_fg4)
 # ------------------------------------------------------------------------------
 [c]
 symbol = ""
-style = "bold fg:color_fg0 bg:color_bg4"
+style = "bold fg:color_fg4 bg:color_bg4"
 format = '[ $symbol( $version) ]($style)'
 
 [cmake]
 symbol = ""
-style = "bold fg:color_fg0 bg:color_bg4"
+style = "bold fg:color_fg4 bg:color_bg4"
 format = '[ $symbol( $version) ]($style)'
 
 [cpp]
 symbol = ""
-style = "bold fg:color_fg0 bg:color_bg4"
+style = "bold fg:color_fg4 bg:color_bg4"
 format = '[ $symbol( $version) ]($style)'
 
 [rust]
 symbol = ""
-style = "bold fg:color_fg0 bg:color_bg4"
+style = "bold fg:color_fg4 bg:color_bg4"
 format = '[ $symbol( $version) ]($style)'
 
 [python]
 symbol = ""
-style = "bold fg:color_fg0 bg:color_bg4"
+style = "bold fg:color_fg4 bg:color_bg4"
 format = '[ $symbol( $version) ]($style)'
 
 [golang]
 symbol = ""
-style = "bold fg:color_fg0 bg:color_bg4"
+style = "bold fg:color_fg4 bg:color_bg4"
 format = '[ $symbol( $version) ]($style)'
 
 [nodejs]
 symbol = ""
-style = "bold fg:color_fg0 bg:color_bg4"
+style = "bold fg:color_fg4 bg:color_bg4"
 format = '[ $symbol( $version) ]($style)'
 
 [bun]
 symbol = ""
-style = "bold fg:color_fg0 bg:color_bg4"
+style = "bold fg:color_fg4 bg:color_bg4"
 format = '[ $symbol( $version) ]($style)'
 
 [deno]
 symbol = ""
-style = "bold fg:color_fg0 bg:color_bg4"
+style = "bold fg:color_fg4 bg:color_bg4"
 format = '[ $symbol( $version) ]($style)'
 
 [dotnet]
 symbol = "󰌛"
-style = "bold fg:color_fg0 bg:color_bg4"
+style = "bold fg:color_fg4 bg:color_bg4"
 format = '[ $symbol( $version) ]($style)'
 
 [java]
 symbol = ""
-style = "bold fg:color_fg0 bg:color_bg4"
+style = "bold fg:color_fg4 bg:color_bg4"
 format = '[ $symbol( $version) ]($style)'
 
 [kotlin]
 symbol = ""
-style = "bold fg:color_fg0 bg:color_bg4"
+style = "bold fg:color_fg4 bg:color_bg4"
 format = '[ $symbol( $version) ]($style)'
 
 [scala]
 symbol = ""
-style = "bold fg:color_fg0 bg:color_bg4"
+style = "bold fg:color_fg4 bg:color_bg4"
 format = '[ $symbol( $version) ]($style)'
 
 [gradle]
 symbol = ""
-style = "bold fg:color_fg0 bg:color_bg4"
+style = "bold fg:color_fg4 bg:color_bg4"
 format = '[ $symbol( $version) ]($style)'
 
 [maven]
 symbol = ""
-style = "bold fg:color_fg0 bg:color_bg4"
+style = "bold fg:color_fg4 bg:color_bg4"
 format = '[ $symbol( $version) ]($style)'
 
 [lua]
 symbol = ""
-style = "bold fg:color_fg0 bg:color_bg4"
+style = "bold fg:color_fg4 bg:color_bg4"
 format = '[ $symbol( $version) ]($style)'
 
 [php]
 symbol = ""
-style = "bold fg:color_fg0 bg:color_bg4"
+style = "bold fg:color_fg4 bg:color_bg4"
 format = '[ $symbol( $version) ]($style)'
 
 [ruby]
 symbol = ""
-style = "bold fg:color_fg0 bg:color_bg4"
+style = "bold fg:color_fg4 bg:color_bg4"
 format = '[ $symbol( $version) ]($style)'
 
 [swift]
 symbol = ""
-style = "bold fg:color_fg0 bg:color_bg4"
+style = "bold fg:color_fg4 bg:color_bg4"
 format = '[ $symbol( $version) ]($style)'
 
 [zig]
 symbol = ""
-style = "bold fg:color_fg0 bg:color_bg4"
+style = "bold fg:color_fg4 bg:color_bg4"
 format = '[ $symbol( $version) ]($style)'
 
 [dart]
 symbol = ""
-style = "bold fg:color_fg0 bg:color_bg4"
+style = "bold fg:color_fg4 bg:color_bg4"
 format = '[ $symbol( $version) ]($style)'
 
 [elixir]
 symbol = ""
-style = "bold fg:color_fg0 bg:color_bg4"
+style = "bold fg:color_fg4 bg:color_bg4"
 format = '[ $symbol( $version) ]($style)'
 
 [elm]
 symbol = ""
-style = "bold fg:color_fg0 bg:color_bg4"
+style = "bold fg:color_fg4 bg:color_bg4"
 format = '[ $symbol( $version) ]($style)'
 
 [erlang]
 symbol = ""
-style = "bold fg:color_fg0 bg:color_bg4"
+style = "bold fg:color_fg4 bg:color_bg4"
 format = '[ $symbol( $version) ]($style)'
 
 [gleam]
 symbol = ""
-style = "bold fg:color_fg0 bg:color_bg4"
+style = "bold fg:color_fg4 bg:color_bg4"
 format = '[ $symbol( $version) ]($style)'
 
 [haskell]
 symbol = ""
-style = "bold fg:color_fg0 bg:color_bg4"
+style = "bold fg:color_fg4 bg:color_bg4"
 format = '[ $symbol( $version) ]($style)'
 
 [haxe]
 symbol = ""
-style = "bold fg:color_fg0 bg:color_bg4"
+style = "bold fg:color_fg4 bg:color_bg4"
 format = '[ $symbol( $version) ]($style)'
 
 [julia]
 symbol = ""
-style = "bold fg:color_fg0 bg:color_bg4"
+style = "bold fg:color_fg4 bg:color_bg4"
 format = '[ $symbol( $version) ]($style)'
 
 [nim]
 symbol = ""
-style = "bold fg:color_fg0 bg:color_bg4"
+style = "bold fg:color_fg4 bg:color_bg4"
 format = '[ $symbol( $version) ]($style)'
 
 [ocaml]
 symbol = ""
-style = "bold fg:color_fg0 bg:color_bg4"
+style = "bold fg:color_fg4 bg:color_bg4"
 format = '[ $symbol( $version) ]($style)'
 
 [odin]
 symbol = "󰟢"
-style = "bold fg:color_fg0 bg:color_bg4"
+style = "bold fg:color_fg4 bg:color_bg4"
 format = '[ $symbol( $version) ]($style)'
 
 [perl]
 symbol = ""
-style = "bold fg:color_fg0 bg:color_bg4"
+style = "bold fg:color_fg4 bg:color_bg4"
 format = '[ $symbol( $version) ]($style)'
 
 [raku]
 symbol = ""
-style = "bold fg:color_fg0 bg:color_bg4"
+style = "bold fg:color_fg4 bg:color_bg4"
 format = '[ $symbol( $version) ]($style)'
 
 [rlang]
 symbol = "󰟔"
-style = "bold fg:color_fg0 bg:color_bg4"
+style = "bold fg:color_fg4 bg:color_bg4"
 format = '[ $symbol( $version) ]($style)'
 
 [terraform]
 symbol = "󱁢"
-style = "bold fg:color_fg0 bg:color_bg4"
+style = "bold fg:color_fg4 bg:color_bg4"
 format = '[ $symbol( $version) ]($style)'
 
 [typst]
 symbol = ""
-style = "bold fg:color_fg0 bg:color_bg4"
+style = "bold fg:color_fg4 bg:color_bg4"
 format = '[ $symbol( $version) ]($style)'
 
 [solidity]
 symbol = ""
-style = "bold fg:color_fg0 bg:color_bg4"
+style = "bold fg:color_fg4 bg:color_bg4"
 format = '[ $symbol( $version) ]($style)'
 
 [package]
 symbol = "󰏗"
-style = "bold fg:color_fg0 bg:color_bg4"
+style = "bold fg:color_fg4 bg:color_bg4"
 format = '[ $symbol( $version) ]($style)'
 
 # ------------------------------------------------------------------------------
-# 5. Containers, Virtual Environments & Cloud (Segment 5: color_bg5)
+# 5. Containers, Virtual Environments & Cloud (Segment 5: color_bg5 / color_fg5)
 # ------------------------------------------------------------------------------
 [container]
 symbol = "⬢"
-style = "bold fg:color_fg0 bg:color_bg5"
+style = "bold fg:color_fg5 bg:color_bg5"
 format = '[ $symbol $name ]($style)'
 
 [docker_context]
 symbol = ""
-style = "bold fg:color_fg0 bg:color_bg5"
+style = "bold fg:color_fg5 bg:color_bg5"
 format = '[ $symbol( $context) ]($style)'
 
 [kubernetes]
 symbol = "󱃾"
-style = "bold fg:color_fg0 bg:color_bg5"
+style = "bold fg:color_fg5 bg:color_bg5"
 format = '[ $symbol( $context) ]($style)'
 disabled = false
 
 [singularity]
 symbol = "󰨊"
-style = "bold fg:color_fg0 bg:color_bg5"
+style = "bold fg:color_fg5 bg:color_bg5"
 format = '[ $symbol( $name) ]($style)'
 
 [guix_shell]
 symbol = ""
-style = "bold fg:color_fg0 bg:color_bg5"
+style = "bold fg:color_fg5 bg:color_bg5"
 format = '[ $symbol( $name) ]($style)'
 
 [nix_shell]
 symbol = ""
-style = "bold fg:color_fg0 bg:color_bg5"
+style = "bold fg:color_fg5 bg:color_bg5"
 format = '[ $symbol( $state) ]($style)'
 
 [conda]
 symbol = ""
-style = "bold fg:color_fg0 bg:color_bg5"
+style = "bold fg:color_fg5 bg:color_bg5"
 format = '[ $symbol( $environment) ]($style)'
 
 [pixi]
 symbol = "󰞌"
-style = "bold fg:color_fg0 bg:color_bg5"
+style = "bold fg:color_fg5 bg:color_bg5"
 format = '[ $symbol( $environment) ]($style)'
 
 [direnv]
 symbol = "󰌪"
-style = "bold fg:color_fg0 bg:color_bg5"
+style = "bold fg:color_fg5 bg:color_bg5"
 format = '[ $symbol( $loaded) ]($style)'
 
 [mise]
 symbol = "󰒋"
-style = "bold fg:color_fg0 bg:color_bg5"
+style = "bold fg:color_fg5 bg:color_bg5"
 format = '[ $symbol( $version) ]($style)'
 
 [aws]
 symbol = ""
-style = "bold fg:color_fg0 bg:color_bg5"
+style = "bold fg:color_fg5 bg:color_bg5"
 format = '[ $symbol( $profile) ]($style)'
 
 [gcloud]
 symbol = "󱇶"
-style = "bold fg:color_fg0 bg:color_bg5"
+style = "bold fg:color_fg5 bg:color_bg5"
 format = '[ $symbol( $account) ]($style)'
 
 [azure]
 symbol = "󰠅"
-style = "bold fg:color_fg0 bg:color_bg5"
+style = "bold fg:color_fg5 bg:color_bg5"
 format = '[ $symbol( $subscription) ]($style)'
 
 # ------------------------------------------------------------------------------
-# 6. Diagnostics, System & Time (Segment 6: color_bg6)
+# 6. Diagnostics, System & Time (Segment 6: color_bg6 / color_fg6)
 # ------------------------------------------------------------------------------
 [battery]
 full_symbol = "󰁹"
 charging_symbol = "󰂄"
 discharging_symbol = "󰂃"
-display = [{ threshold = 101, style = "bold fg:color_fg0 bg:color_bg6" }]
+display = [{ threshold = 101, style = "bold fg:color_fg6 bg:color_bg6" }]
 format = '[ $symbol $percentage ]($style)'
 
 [memory_usage]
 symbol = "󰍛"
-style = "bold fg:color_fg0 bg:color_bg6"
+style = "bold fg:color_fg6 bg:color_bg6"
 format = '[ $symbol $ram ]($style)'
 
 [jobs]
 symbol = "󰜎"
-style = "bold fg:color_fg0 bg:color_bg6"
+style = "bold fg:color_fg6 bg:color_bg6"
 format = '[ $symbol $number ]($style)'
 
 [time]
 disabled = false
 time_format = "%R"
-style = "bold fg:color_fg0 bg:color_bg6"
+style = "bold fg:color_fg6 bg:color_bg6"
 format = '[  $time ]($style)'
 
 [cmd_duration]
