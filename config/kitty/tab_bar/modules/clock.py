@@ -3,8 +3,10 @@
 # ==============================================================================
 
 import datetime
+from typing import Optional
 
 
-def get_time() -> str:
-    """Formats current 24-hour time with a Nerd Font clock glyph."""
-    return datetime.datetime.now().strftime(" %H:%M")
+def get_time(fmt: Optional[str] = None) -> str:
+    """Formats current time with a Nerd Font clock glyph using configured strftime pattern."""
+    clock_fmt = fmt if fmt else "%H:%M"
+    return datetime.datetime.now().strftime(f" {clock_fmt}")

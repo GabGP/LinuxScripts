@@ -4,6 +4,7 @@
 
 import datetime
 import os
+from tab_bar.config import CONFIG
 
 # Resolve repository root directory and runtime cache directory
 _REAL_FILE = os.path.realpath(__file__)
@@ -18,7 +19,7 @@ except Exception:
 WEATHER_CACHE = os.path.join(CACHE_DIR, "weather.cache")
 GEO_CACHE = os.path.join(CACHE_DIR, "geo.cache")
 DIAG_LOG = os.path.join(CACHE_DIR, "tabbar.log")
-WEATHER_REFRESH_SECONDS = 1800  # 30 minutes
+WEATHER_REFRESH_SECONDS = CONFIG.weather_refresh_seconds
 
 
 def log_diag(msg: str) -> None:

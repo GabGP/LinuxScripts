@@ -3,15 +3,12 @@
 # ==============================================================================
 
 from kitty.fast_data_types import Screen
-from kitty.tab_bar import (
-    DrawData,
-    ExtraData,
-    TabBarData,
-    as_rgb,
-    draw_tab_with_powerline,
-)
+from kitty.tab_bar import DrawData, ExtraData, TabBarData, as_rgb, draw_tab_with_powerline
 from tab_bar.title import format_tab_title
 from tab_bar.widgets import build_widgets, calc_widgets_width
+
+# Mirror left powerline separators: ''/'' -> ''/'', ''/'╱' -> ''/'╱', ''/'' -> ''/''
+_SEPARATORS = {"slanted": ("", "╱"), "round": ("", "")}
 
 
 def _draw_right_status(screen: Screen, draw_data: DrawData) -> None:
@@ -21,26 +18,12 @@ def _draw_right_status(screen: Screen, draw_data: DrawData) -> None:
     if not widgets:
         return
 
-    # Mirror the left powerline separator symbols (hard and soft)
-    # Left: '' / '' (angled)  -> Right: '' / ''
-    # Left: '' / '╱' (slanted) -> Right: '' / '╱'
-    # Left: '' / '' (round)   -> Right: '' / ''
-    if draw_data.powerline_style == "slanted":
-        sep_symbol = ""
-        soft_sep_symbol = "╱"
-    elif draw_data.powerline_style == "round":
-        sep_symbol = ""
-        soft_sep_symbol = ""
-    else:  # angled (default)
-        sep_symbol = ""
-        soft_sep_symbol = ""
-
+    sep_symbol, soft_sep_symbol = _SEPARATORS.get(draw_data.powerline_style, ("", ""))
     available_space = screen.columns - screen.cursor.x
 
     # Graceful degradation: drop leftmost widgets if terminal window is extremely narrow
     while widgets and calc_widgets_width(widgets) > available_space:
         widgets.pop(0)
-
     if not widgets:
         return
 
@@ -49,8 +32,7 @@ def _draw_right_status(screen: Screen, draw_data: DrawData) -> None:
     # Fill gap between left tabs and right status bar
     gap = screen.columns - total_width - screen.cursor.x
     if gap > 0:
-        screen.cursor.bg = default_bg
-        screen.cursor.fg = default_bg
+        screen.cursor.bg = screen.cursor.fg = default_bg
         screen.draw(" " * gap)
 
     # Draw each widget with seamless powerline and soft separators
@@ -58,27 +40,21 @@ def _draw_right_status(screen: Screen, draw_data: DrawData) -> None:
     for text, fg, bg in widgets:
         if bg == prev_bg:
             # Seamless soft separator matching Kitty left tab styling
-            screen.cursor.fg = default_bg
-            screen.cursor.bg = bg
+            screen.cursor.fg, screen.cursor.bg = default_bg, bg
             screen.draw(soft_sep_symbol)
         else:
             # Seamless hard powerline arrow transition
-            screen.cursor.fg = bg
-            screen.cursor.bg = prev_bg
+            screen.cursor.fg, screen.cursor.bg = bg, prev_bg
             screen.draw(sep_symbol)
 
         # Draw widget content in uniform bold for sharp contrast
-        screen.cursor.bold = True
-        screen.cursor.fg = fg
-        screen.cursor.bg = bg
+        screen.cursor.bold, screen.cursor.fg, screen.cursor.bg = True, fg, bg
         screen.draw(text)
         screen.cursor.bold = False
-
         prev_bg = bg
 
     # Reset cursor colors
-    screen.cursor.bg = default_bg
-    screen.cursor.fg = default_bg
+    screen.cursor.bg = screen.cursor.fg = default_bg
 
 
 def draw_tab(
@@ -92,12 +68,11 @@ def draw_tab(
     extra_data: ExtraData,
 ) -> int:
     """Main tab drawing callback executed by Kitty for each tab."""
-    # Clean and truncate title to 3 directory levels
-    clean_title = format_tab_title(tab.title, max_depth=3)
+    # Clean and truncate title using configured max depth and command glyphs
+    clean_title = format_tab_title(tab.title)
     tab = tab._replace(title=clean_title)
 
     # Reserve guaranteed space for right status widgets so long tab titles never crowd them out
-    # Calculate required width of all active widgets (~50 columns)
     status_width = calc_widgets_width(build_widgets(draw_data))
     max_allowed_for_tabs = screen.columns - status_width
     remaining_for_this_tab = max_allowed_for_tabs - before - 2
