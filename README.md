@@ -45,9 +45,11 @@ LinuxScripts/
 │   ├── bash/.bashrc             # → ~/.bashrc
 │   ├── kitty/
 │   │   ├── kitty.conf           # → ~/.config/kitty/kitty.conf
-│   │   ├── tab_bar.py           # → ~/.config/kitty/tab_bar.py (custom status bar entry point)
-│   │   ├── tab_bar/             # Modular status bar package (timer, renderer, widgets)
-│   │   └── *.conf               # Color themes and personal preset configs
+│   │   ├── current-theme.conf   # → Active theme managed by Kitty theme switcher
+│   │   ├── tab_bar.conf         # → Declarative tab bar settings & 197+ command icons
+│   │   ├── tab_bar.py           # → ~/.config/kitty/tab_bar.py (status bar entry point)
+│   │   ├── themes/              # Custom theme preset catalog (dimidium, kokiri_dark)
+│   │   └── tab_bar/             # Modular status bar package (registry, timer, renderer, widgets)
 │   └── starship/starship.toml   # → ~/.config/starship.toml
 ├── scripts/
 │   ├── lib/                     # Shared modular libraries (colors, logger, backup)
@@ -63,7 +65,7 @@ LinuxScripts/
 
 ## Configurations
 
-- **Kitty** — Uses MesloLGS Nerd Font with custom Powerline tabs and right-aligned live status widgets (Open-Meteo Weather, RAM usage, CPU load & temperature, Battery status, and 24-hour Clock), plus F1 `btop` overlay shortcut. Status widgets automatically adapt to whatever color theme is active. Powered by an aligned zero-polling kernel interrupt timer. See [tab_bar/README.md](config/kitty/tab_bar/README.md) for architecture and widget development guide.
+- **Kitty** — Uses MesloLGS Nerd Font with declarative configuration (`tab_bar.conf`), custom Powerline tabs, and right-aligned live status widgets (Open-Meteo Weather, RAM usage, CPU load & temperature, Battery status, and 24-hour Clock), plus F1 `btop` overlay shortcut. Features plug-and-play widget auto-discovery, frame-scoped render memoization, and zero-polling kernel interrupt timers. See [tab_bar/README.md](config/kitty/tab_bar/README.md) for architecture and widget development guide.
 - **Starship** — Continuous Powerline capsule layout inspired by [Gruvbox-Rainbow](https://starship.rs/presets/gruvbox-rainbow), with a modular color palette. All 101 default Starship modules are preserved. Edit the color variables at the top of [starship.toml](config/starship/starship.toml) to swap palettes easily.
 - **Bash** — User environment variables, path exports, and Starship shell hook.
 
