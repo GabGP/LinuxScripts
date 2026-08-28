@@ -1,6 +1,7 @@
 # Local backup directories
 backups/
 .bak
+kitty.conf.bak
 
 # Runtime cache and logs
 .cache/
