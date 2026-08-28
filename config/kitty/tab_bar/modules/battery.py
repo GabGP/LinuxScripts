@@ -3,8 +3,10 @@
 # ==============================================================================
 
 import os
+from tab_bar.registry import register_widget
 
 
+@register_widget("battery", style="inactive")
 def get_battery() -> str:
     """Reads Linux sysfs power supply for capacity and charging status."""
     try:

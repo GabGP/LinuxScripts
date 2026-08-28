@@ -3,6 +3,10 @@
 # ==============================================================================
 
 
+from tab_bar.registry import register_widget
+
+
+@register_widget("ram", style="inactive")
 def get_ram() -> str:
     """Reads Linux /proc/meminfo for memory usage in Gigabytes."""
     try:
