@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 const fs = require("fs");
+const { execSync } = require("child_process");
 
 const LARGE_WINDOW_MIN = 1_000_000;
 const BAND_TOP_LARGE = 400_000;
@@ -21,7 +22,8 @@ const SEP = noColor ? " · " : "\x1b[2;90m · \x1b[0m";
 function formatTokens(n) {
   if (n >= 1_000_000) {
     const m = n / 1_000_000;
-    return Number.isInteger(m) ? `${m}M` : `${m.toFixed(1)}M`;
+    const rounded = Math.round(m * 10) / 10;
+    return Number.isInteger(rounded) ? `${rounded}M` : `${rounded.toFixed(1)}M`;
   }
   if (n >= 1_000) return `${Math.round(n / 1_000)}k`;
   return `${n}`;
@@ -41,8 +43,19 @@ function getContextColor(used, windowSize) {
   return c.red;
 }
 
-function formatCountdownSeconds(secs) {
-  if (typeof secs !== "number" || secs <= 0) return "";
+function formatCountdown(resetsAtOrSeconds) {
+  let secs = 0;
+  if (typeof resetsAtOrSeconds === "number") {
+    secs = resetsAtOrSeconds > 1e9
+      ? resetsAtOrSeconds - Math.floor(Date.now() / 1000)
+      : resetsAtOrSeconds;
+  } else if (typeof resetsAtOrSeconds === "string") {
+    const parsed = new Date(resetsAtOrSeconds).getTime();
+    if (!Number.isNaN(parsed)) {
+      secs = Math.floor((parsed - Date.now()) / 1000);
+    }
+  }
+  if (secs <= 0) return "";
   const mins = Math.round(secs / 60);
   if (mins <= 0) return "";
   const hours = Math.floor(mins / 60);
@@ -50,12 +63,6 @@ function formatCountdownSeconds(secs) {
     ? `${Math.floor(hours / 24)}d${String(hours % 24).padStart(2, "0")}h`
     : `${hours}h${String(mins % 60).padStart(2, "0")}m`;
   return ` ${c.dim(`↻${text}`)}`;
-}
-
-function formatCountdownTimestamp(resetsAt) {
-  if (typeof resetsAt !== "number") return "";
-  const secs = resetsAt > 1e11 ? (resetsAt - Date.now()) / 1000 : resetsAt - Math.floor(Date.now() / 1000);
-  return formatCountdownSeconds(secs);
 }
 
 function formatLimit(label, limit, withCountdown) {
@@ -68,11 +75,8 @@ function formatLimit(label, limit, withCountdown) {
   const pct = Math.round(used);
   const color = pct >= RATE_LIMIT_THRESHOLDS.red ? c.red
     : pct >= RATE_LIMIT_THRESHOLDS.yellow ? c.yellow : (s) => s;
-  const countdown = withCountdown
-    ? (typeof limit.reset_in_seconds === "number"
-        ? formatCountdownSeconds(limit.reset_in_seconds)
-        : formatCountdownTimestamp(limit.resets_at || limit.reset_time))
-    : "";
+  const resetVal = limit.reset_in_seconds ?? limit.reset_time ?? limit.resets_at;
+  const countdown = withCountdown ? formatCountdown(resetVal) : "";
   return color(`${label} ${pct}%`) + countdown;
 }
 
@@ -82,17 +86,22 @@ try {
   if (!data || typeof data !== "object") throw new Error();
   const segments = [];
 
-  // 1. Model display name / id
-  const modelName = data.model?.display_name || data.model?.id;
+  // 1. Model display name (cleaned of redundant effort suffix)
+  let modelName = data.model?.display_name || data.model?.id || "";
+  const effort = data.model?.effort || data.effort?.level;
+  if (effort && modelName.toLowerCase().includes(effort.toLowerCase())) {
+    modelName = modelName.replace(/ \([^)]+\)$/, "");
+  }
   if (modelName) segments.push(c.bold(modelName));
 
-  // 2. Agent state / Effort / Mode
+  // 2. Effort / Agent state indicator
   const state = data.agent_state;
-  const effort = data.effort?.level;
   const fast = Boolean(data.fast_mode);
-  const stateOrEffort = state || effort;
-  if (stateOrEffort || fast) {
-    segments.push(stateOrEffort ? (fast ? `${stateOrEffort} ⚡` : stateOrEffort) : "⚡");
+  const badge = effort || state;
+  if (badge || fast) {
+    const isWorking = state === "working" || state === "thinking";
+    const icon = (fast || isWorking) ? " ⚡" : "";
+    segments.push(badge ? `${badge}${icon}` : "⚡");
   }
 
   // 3. Context window usage meter
@@ -114,22 +123,57 @@ try {
     segments.push(getContextColor(used, win)(`${bar} ${formatTokens(used)}/${winStr}`));
   }
 
-  // 4. Cost (if provided)
+  // 4. Session cost (if provided)
   const cost = data.cost?.total_cost_usd;
   if (typeof cost === "number" && !Number.isNaN(cost)) {
     segments.push(`$${cost.toFixed(2)}`);
   }
 
-  // 5. Quota / Rate Limits
-  if (data.rate_limits) {
-    const fiveHour = formatLimit("5h", data.rate_limits.five_hour, true);
-    if (fiveHour) segments.push(fiveHour);
-    const sevenDay = formatLimit("7d", data.rate_limits.seven_day, true);
-    if (sevenDay) segments.push(sevenDay);
+  // 5. Rate Limits / Quotas (5h and 7d/weekly)
+  const is3P = data.model?.id?.toLowerCase().includes("claude");
+  const fiveKey = is3P ? "3p-5h" : "gemini-5h";
+  const weekKey = is3P ? "3p-weekly" : "gemini-weekly";
+
+  const five = data.rate_limits?.five_hour
+    || data.quota?.[fiveKey]
+    || data.quota?.["gemini-5h"]
+    || data.quota?.["3p-5h"]
+    || data.quota?.["5h"];
+
+  const week = data.rate_limits?.seven_day
+    || data.quota?.[weekKey]
+    || data.quota?.["gemini-weekly"]
+    || data.quota?.["3p-weekly"]
+    || data.quota?.["weekly"]
+    || data.quota?.["7d"];
+
+  if (five) {
+    const f = formatLimit("5h", five, true);
+    if (f) segments.push(f);
   }
-  if (data.quota) {
-    const quotaStr = formatLimit("quota", data.quota, true);
-    if (quotaStr) segments.push(quotaStr);
+  if (week) {
+    const w = formatLimit("7d", week, true);
+    if (w) segments.push(w);
+  }
+  if (!five && !week && data.quota) {
+    const q = formatLimit("quota", data.quota, true);
+    if (q) segments.push(q);
+  }
+
+  // 6. Git Branch (if inside a repo)
+  let gitBranch = "";
+  if (data.vcs?.type === "git" || data.cwd) {
+    try {
+      gitBranch = execSync("git rev-parse --abbrev-ref HEAD", {
+        cwd: data.cwd || process.cwd(),
+        timeout: 300,
+        encoding: "utf8",
+        stdio: ["pipe", "pipe", "ignore"],
+      }).trim();
+    } catch {}
+  }
+  if (gitBranch) {
+    segments.push(c.dim(noColor ? gitBranch : ` ${gitBranch}`));
   }
 
   console.log(segments.join(SEP));
