@@ -17,7 +17,7 @@ cd LinuxScripts
 
 | Option | What it does |
 | :--- | :--- |
-| **Configurations** | Symlinks dotfiles (Kitty, Starship, Bash, Claude) to their expected locations. Existing files are automatically backed up to `backups/`. You can install all configs or pick individually. |
+| **Configurations** | Symlinks dotfiles (Kitty, Starship, Bash, Claude, AGY) to their expected locations. Existing files are automatically backed up to `backups/`. You can install all configs or pick individually. |
 | **Automation Scripts** | Symlinks scripts from `scripts/` into `~/.local/bin/` so they're available as commands (`update`, `check-updates`, `ezin`). You can link all or pick individually. |
 | **Both** | Runs both of the above in one step. |
 
@@ -42,10 +42,14 @@ fc-cache -f ~/.local/share/fonts/Meslo
 ```text
 LinuxScripts/
 ├── config/
+│   ├── agy/
+│   │   ├── statusline.js        # → ~/.gemini/antigravity-cli/statusline.js (AGY CLI statusline)
+│   │   ├── statusline.test.js   # Automated unit test suite (19 tests)
+│   │   └── README.md            # Statusline guide & configuration
 │   ├── bash/.bashrc             # → ~/.bashrc
 │   ├── claude/
 │   │   ├── statusline.js        # → ~/.claude/statusline.js (Claude Code CLI statusline)
-│   │   ├── statusline.test.js   # Automated unit test suite
+│   │   ├── statusline.test.js   # Automated unit test suite (16 tests)
 │   │   └── README.md            # Statusline guide & configuration
 │   ├── kitty/
 │   │   ├── kitty.conf           # → ~/.config/kitty/kitty.conf
@@ -71,6 +75,7 @@ LinuxScripts/
 - **Starship** — Continuous Powerline capsule layout inspired by [Gruvbox-Rainbow](https://starship.rs/presets/gruvbox-rainbow), with a modular color palette. All 101 default Starship modules are preserved. Edit the color variables at the top of [starship.toml](config/starship/starship.toml) to swap palettes easily.
 - **Bash** — User environment variables, path exports, and Starship shell hook.
 - **Claude Code** — Custom zero-dependency Node.js statusline displaying current model, effort level / fast mode (`⚡`), visual 4-bar context window usage meter (`▮▮▯▯`) with threshold color scaling, real-time session cost in USD, and 5h/7d rate limit trackers with automatic reset countdown timers. Includes a comprehensive 16-case unit test suite (`statusline.test.js`). See [config/claude/README.md](config/claude/README.md) for details.
+- **Antigravity CLI (`agy`)** — Companion custom statusline mirroring the Claude statusline look and feel. Displays active model (`Gemini 3.8 Flash`, `Gemini 3.8 Pro`), real-time agent state (`thinking ⚡`, `working ⚡`, `idle`), visual 4-bar context window usage gauge calibrated for Gemini 1M/2M models, session cost, and quota reset countdowns. Includes a 19-case test suite (`statusline.test.js`). See [config/agy/README.md](config/agy/README.md) for details.
 
 ## License
 
