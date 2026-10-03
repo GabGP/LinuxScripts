@@ -66,13 +66,14 @@ install_script_item() {
 menu_install_configs() {
     print_header
     echo -e "${COLOR_BOLD}Select configurations to install (Symlink with auto-backup):${COLOR_RESET}\n"
-    echo "  1) All Configurations (Kitty, Starship, Bash)"
+    echo "  1) All Configurations (Kitty, Starship, Bash, Claude)"
     echo "  2) Kitty Terminal (~/.config/kitty/)"
     echo "  3) Starship Prompt (~/.config/starship.toml)"
     echo "  4) Bash Shell (~/.bashrc)"
-    echo "  5) Back to Main Menu"
+    echo "  5) Claude Code Statusline (~/.claude/statusline.js)"
+    echo "  6) Back to Main Menu"
     echo ""
-    read -rp "Enter choice [1-5]: " config_choice
+    read -rp "Enter choice [1-6]: " config_choice
 
     case "$config_choice" in
         1)
@@ -80,6 +81,8 @@ menu_install_configs() {
             install_config_item "Kitty (Full Package)" "${SCRIPT_DIR}/config/kitty" "${HOME}/.config/kitty"
             install_config_item "Starship" "${SCRIPT_DIR}/config/starship/starship.toml" "${HOME}/.config/starship.toml"
             install_config_item "Bash" "${SCRIPT_DIR}/config/bash/.bashrc" "${HOME}/.bashrc"
+            install_config_item "Claude Statusline" "${SCRIPT_DIR}/config/claude/statusline.js" "${HOME}/.claude/statusline.js"
+            install_config_item "Claude Statusline (Test)" "${SCRIPT_DIR}/config/claude/statusline.test.js" "${HOME}/.claude/statusline.test.js"
             ;;
         2)
             echo -e "\n${COLOR_BOLD}Installing Kitty configuration...${COLOR_RESET}"
@@ -94,6 +97,11 @@ menu_install_configs() {
             install_config_item "Bash" "${SCRIPT_DIR}/config/bash/.bashrc" "${HOME}/.bashrc"
             ;;
         5)
+            echo -e "\n${COLOR_BOLD}Installing Claude Code Statusline...${COLOR_RESET}"
+            install_config_item "Claude Statusline" "${SCRIPT_DIR}/config/claude/statusline.js" "${HOME}/.claude/statusline.js"
+            install_config_item "Claude Statusline (Test)" "${SCRIPT_DIR}/config/claude/statusline.test.js" "${HOME}/.claude/statusline.test.js"
+            ;;
+        6)
             return 0
             ;;
         *)
@@ -164,6 +172,8 @@ install_both() {
     install_config_item "Kitty (Full Package)" "${SCRIPT_DIR}/config/kitty" "${HOME}/.config/kitty"
     install_config_item "Starship" "${SCRIPT_DIR}/config/starship/starship.toml" "${HOME}/.config/starship.toml"
     install_config_item "Bash" "${SCRIPT_DIR}/config/bash/.bashrc" "${HOME}/.bashrc"
+    install_config_item "Claude Statusline" "${SCRIPT_DIR}/config/claude/statusline.js" "${HOME}/.claude/statusline.js"
+    install_config_item "Claude Statusline (Test)" "${SCRIPT_DIR}/config/claude/statusline.test.js" "${HOME}/.claude/statusline.test.js"
 
     echo -e "\n${COLOR_BOLD}2. Linking scripts to ~/.local/bin...${COLOR_RESET}"
     chmod +x "${SCRIPT_DIR}/scripts/"*.sh
@@ -187,7 +197,7 @@ main_menu() {
     while true; do
         print_header
         echo -e "${COLOR_BOLD}What would you like to install?${COLOR_RESET}\n"
-        echo "  1) Configurations (Kitty, Starship, Bash)"
+        echo "  1) Configurations (Kitty, Starship, Bash, Claude)"
         echo "  2) Automation Scripts (Link to ~/.local/bin)"
         echo "  3) Both (Full Installation)"
         echo "  4) Exit"

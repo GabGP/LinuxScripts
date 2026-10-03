@@ -17,7 +17,7 @@ cd LinuxScripts
 
 | Option | What it does |
 | :--- | :--- |
-| **Configurations** | Symlinks dotfiles (Kitty, Starship, Bash) to their expected locations. Existing files are automatically backed up to `backups/`. You can install all configs or pick individually. |
+| **Configurations** | Symlinks dotfiles (Kitty, Starship, Bash, Claude) to their expected locations. Existing files are automatically backed up to `backups/`. You can install all configs or pick individually. |
 | **Automation Scripts** | Symlinks scripts from `scripts/` into `~/.local/bin/` so they're available as commands (`update`, `check-updates`, `ezin`). You can link all or pick individually. |
 | **Both** | Runs both of the above in one step. |
 
@@ -43,6 +43,10 @@ fc-cache -f ~/.local/share/fonts/Meslo
 LinuxScripts/
 ├── config/
 │   ├── bash/.bashrc             # → ~/.bashrc
+│   ├── claude/
+│   │   ├── statusline.js        # → ~/.claude/statusline.js (Claude Code CLI statusline)
+│   │   ├── statusline.test.js   # Automated unit test suite
+│   │   └── README.md            # Statusline guide & configuration
 │   ├── kitty/
 │   │   ├── kitty.conf           # → ~/.config/kitty/kitty.conf
 │   │   ├── tab_bar.py           # → ~/.config/kitty/tab_bar.py (custom status bar entry point)
@@ -66,6 +70,7 @@ LinuxScripts/
 - **Kitty** — Uses MesloLGS Nerd Font with custom Powerline tabs and right-aligned live status widgets (Open-Meteo Weather, RAM usage, CPU load & temperature, Battery status, and 24-hour Clock), plus F1 `btop` overlay shortcut. Status widgets automatically adapt to whatever color theme is active. Powered by an aligned zero-polling kernel interrupt timer. See [tab_bar/README.md](config/kitty/tab_bar/README.md) for architecture and widget development guide.
 - **Starship** — Continuous Powerline capsule layout inspired by [Gruvbox-Rainbow](https://starship.rs/presets/gruvbox-rainbow), with a modular color palette. All 101 default Starship modules are preserved. Edit the color variables at the top of [starship.toml](config/starship/starship.toml) to swap palettes easily.
 - **Bash** — User environment variables, path exports, and Starship shell hook.
+- **Claude Code** — Custom zero-dependency Node.js statusline displaying current model, effort level / fast mode (`⚡`), visual 4-bar context window usage meter (`▮▮▯▯`) with threshold color scaling, real-time session cost in USD, and 5h/7d rate limit trackers with automatic reset countdown timers. Includes a comprehensive 16-case unit test suite (`statusline.test.js`). See [config/claude/README.md](config/claude/README.md) for details.
 
 ## License
 
