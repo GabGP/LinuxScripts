@@ -94,14 +94,12 @@ try {
   }
   if (modelName) segments.push(c.bold(modelName));
 
-  // 2. Effort / Agent state indicator
+  // 2. Effort / Agent state indicator (mirroring Claude: ⚡ only when fast_mode is active)
   const state = data.agent_state;
   const fast = Boolean(data.fast_mode);
   const badge = effort || state;
   if (badge || fast) {
-    const isWorking = state === "working" || state === "thinking";
-    const icon = (fast || isWorking) ? " ⚡" : "";
-    segments.push(badge ? `${badge}${icon}` : "⚡");
+    segments.push(badge ? (fast ? `${badge} ⚡` : badge) : "⚡");
   }
 
   // 3. Context window usage meter

@@ -122,6 +122,11 @@ const cases = [
   ["output tokens excluded from used meter", sampleAgy({ used: 100_000, output: 200_000 }), (o) => { has(o, "100k/1M"); lacks(o, "300k"); }],
   ["past reset hides countdown", sampleAgy({ extra: { quota: { used_percentage: 5, reset_in_seconds: 0 } } }), (o) => { has(o, "quota 5%"); lacks(o, "↻"); }],
   [
+    "working state without fast mode suppresses lightning",
+    sampleAgy({ extra: { agent_state: "working", fast_mode: false } }),
+    (o) => { has(o, "high"); lacks(o, "⚡"); },
+  ],
+  [
     "idle state without fast mode",
     sampleAgy({ extra: { agent_state: "idle", fast_mode: false, model: { id: "test", display_name: "test" } } }),
     (o) => { has(o, "idle"); lacks(o, "⚡"); },
