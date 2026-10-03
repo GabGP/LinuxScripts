@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 const fs = require("fs");
 
 const LARGE_WINDOW_MIN = 1_000_000;
