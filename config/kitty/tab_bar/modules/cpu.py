@@ -3,8 +3,10 @@
 # ==============================================================================
 
 import os
+from tab_bar.registry import register_widget
 
 
+@register_widget("cpu", style="inactive")
 def get_cpu() -> str:
     """Reads Linux 1-minute load average and hardware CPU thermal sensor."""
     try:

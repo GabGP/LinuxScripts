@@ -7,8 +7,10 @@ import os
 
 from tab_bar.constants import WEATHER_CACHE, WEATHER_REFRESH_SECONDS
 from tab_bar.modules.weather.client import fetch_weather_async
+from tab_bar.registry import register_widget
 
 
+@register_widget("weather", style="inactive")
 def get_weather() -> str:
     """Reads cached Open-Meteo weather or triggers background refresh."""
     try:

@@ -3,7 +3,6 @@
 # ==============================================================================
 
 import os
-from typing import Dict, List
 
 
 class TabBarConfig:
@@ -11,10 +10,13 @@ class TabBarConfig:
         self.max_title_depth: int = 3
         self.auto_detect_commands: bool = True
         self.default_cmd_icon: str = ""
-        self.active_widgets: List[str] = ["weather", "ram", "cpu", "battery", "clock"]
+        self.active_widgets: list[str] = ["weather", "ram", "cpu", "battery", "clock"]
         self.clock_format: str = "%H:%M"
         self.weather_refresh_seconds: int = 1800
-        self.command_icons: Dict[str, str] = {}
+        self.weather_lat: float | None = None
+        self.weather_lon: float | None = None
+        self.enable_logging: bool = False
+        self.command_icons: dict[str, str] = {}
 
 
 def _find_conf_path() -> str:
@@ -64,6 +66,12 @@ def load_config() -> TabBarConfig:
                     cfg.clock_format = " ".join(line.split()[1:])
                 elif key == "weather_refresh_seconds" and len(parts) >= 2:
                     cfg.weather_refresh_seconds = int(parts[1])
+                elif key == "weather_lat" and len(parts) >= 2:
+                    cfg.weather_lat = float(parts[1])
+                elif key == "weather_lon" and len(parts) >= 2:
+                    cfg.weather_lon = float(parts[1])
+                elif key == "enable_logging" and len(parts) >= 2:
+                    cfg.enable_logging = parts[1].lower() in ("yes", "true", "1", "on")
     except Exception:
         pass
 
