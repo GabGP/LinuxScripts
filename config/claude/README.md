@@ -29,16 +29,23 @@ A lightweight, zero-dependency Node.js statusline script for [Claude Code](https
 
 ---
 
-## 🖥️ Output Example
+## 🖥️ Output Examples
 
+### Standard Mode (Default)
 **Prompt In Progress (Running):**
 ```text
-Opus 5.5 · high ⚡ · ▮▮▯▯ 143k/1M · $0.84 · ⏱ 14s · 5h 32% ↻2h05m · 7d 44% ↻3d04h
+Opus 5.5 · high · ▮▮▯▯ 143k/1M · $0.84 · ⏱ 14s · 5h 32% ↻2h05m · 7d 44% ↻3d04h
 ```
 
 **Answer Returned (Paused / Done):**
 ```text
 Opus 5.5 · high · ▮▮▯▯ 143k/1M · $0.84 · ✓ 14s · 5h 32% ↻2h05m · 7d 44% ↻3d04h
+```
+
+### Fast Mode Enabled (`⚡` badge)
+When Fast Mode is toggled on (e.g. `/fast`), the `⚡` badge appears persistently alongside the effort level in both running and idle states:
+```text
+Opus 5.5 · high ⚡ · ▮▮▯▯ 143k/1M · $0.84 · ✓ 14s · 5h 32% ↻2h05m · 7d 44% ↻3d04h
 ```
 
 ---

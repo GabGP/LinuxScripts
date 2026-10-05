@@ -32,16 +32,23 @@ A lightweight, zero-dependency Node.js statusline script for the [Antigravity CL
 
 ---
 
-## 🖥️ Output Example
+## 🖥️ Output Examples
 
+### Standard Mode (Default)
 **Prompt In Progress (Running):**
 ```text
-Gemini 3.8 Flash · high ⚡ · ▮▮▯▯ 145k/1M · $0.12 · ⏱ 14s · 5h 9% ↻4h30m · 7d 45% ↻3d08h ·  main
+Gemini 3.8 Flash · high · ▮▮▯▯ 145k/1M · $0.12 · ⏱ 14s · 5h 9% ↻4h30m · 7d 45% ↻3d08h ·  main
 ```
 
 **Answer Returned (Paused / Done):**
 ```text
 Gemini 3.8 Flash · high · ▮▮▯▯ 145k/1M · $0.12 · ✓ 14s · 5h 9% ↻4h30m · 7d 45% ↻3d08h ·  main
+```
+
+### Fast Mode Enabled (`⚡` badge)
+When Fast Mode is toggled on (e.g. `/fast`), the `⚡` badge appears persistently alongside the effort level in both running and idle states:
+```text
+Gemini 3.8 Flash · high ⚡ · ▮▮▯▯ 145k/1M · $0.12 · ✓ 14s · 5h 9% ↻4h30m · 7d 45% ↻3d08h ·  main
 ```
 
 ---
