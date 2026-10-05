@@ -1,14 +1,16 @@
 const { spawnSync } = require("child_process");
+const fs = require("fs");
+const os = require("os");
 const path = require("path");
 
 const SCRIPT = path.join(__dirname, "statusline.js");
 const WIN_1M = 1_000_000;
 const WIN_2M = 2_000_000;
 
-function run(input) {
+function run(input, env = {}) {
   const r = spawnSync("node", [SCRIPT], {
     input,
-    env: { ...process.env, NO_COLOR: "1" },
+    env: { ...process.env, NO_COLOR: "1", ...env },
     encoding: "utf-8",
   });
   return { stdout: r.stdout.trim(), status: r.status };
@@ -151,11 +153,53 @@ const cases = [
     "bad input json {",
     (o, st) => { has(o, "statusline: bad input"); assert(st === 0, `exit ${st}`); },
   ],
+  [
+    "timer in progress explicit seconds",
+    sampleAgy({ extra: { timer: { status: "active", duration_ms: 14000 } } }),
+    (o) => has(o, "⏱ 14s"),
+  ],
+  [
+    "timer in progress minutes format",
+    sampleAgy({ extra: { timer: { status: "active", duration_ms: 65000 } } }),
+    (o) => has(o, "⏱ 1m05s"),
+  ],
+  [
+    "timer paused explicit seconds",
+    sampleAgy({ extra: { timer: { status: "paused", duration_ms: 14000 } } }),
+    (o) => has(o, "✓ 14s"),
+  ],
+  [
+    "timer paused subsecond shows <1s",
+    sampleAgy({ extra: { timer: { status: "paused", duration_ms: 300 } } }),
+    (o) => has(o, "✓ <1s"),
+  ],
+  [
+    "timer paused hours format",
+    sampleAgy({ extra: { timer: { status: "paused", duration_ms: 3665000 } } }),
+    (o) => has(o, "✓ 1h01m"),
+  ],
+  [
+    "timer suppressed when state is missing",
+    sampleAgy({ extra: { agent_state: undefined } }),
+    (o) => { lacks(o, "⏱"); lacks(o, "✓"); },
+  ],
+  [
+    "custom timer icons via env vars",
+    sampleAgy({ extra: { timer: { status: "active", duration_ms: 5000 } } }),
+    (o) => has(o, "⏳ 5s"),
+    { STATUSLINE_RUNNING_ICON: "⏳" },
+  ],
+  [
+    "custom done icon via env vars",
+    sampleAgy({ extra: { timer: { status: "paused", duration_ms: 5000 } } }),
+    (o) => has(o, "✔ 5s"),
+    { STATUSLINE_DONE_ICON: "✔" },
+  ],
 ];
 
 let failed = 0;
-for (const [name, input, check] of cases) {
-  const { stdout, status } = run(input);
+for (const [name, input, check, extraEnv] of cases) {
+  const { stdout, status } = run(input, extraEnv);
   try {
     check(stdout, status);
     console.log(`ok ${name}`);
@@ -164,4 +208,34 @@ for (const [name, input, check] of cases) {
     console.log(`FAIL ${name}: ${e.message}`);
   }
 }
+
+// Dynamic prompt lifecycle test (start -> in-progress -> answer returns paused -> next prompt resets)
+const lifecycleSession = `lifecycle-${Date.now()}`;
+const lifecycleFile = path.join(os.tmpdir(), `agy-timer-${lifecycleSession}.json`);
+
+try {
+  // Step 1: User sends prompt (active)
+  const step1 = run(JSON.stringify({ agent_state: "thinking", session_id: lifecycleSession }));
+  has(step1.stdout, "⏱ 0s");
+
+  // Step 2: Answer returns (idle -> paused)
+  const step2 = run(JSON.stringify({ agent_state: "idle", session_id: lifecycleSession }));
+  has(step2.stdout, "✓");
+
+  // Step 3: Stays paused while idle
+  const step3 = run(JSON.stringify({ agent_state: "idle", session_id: lifecycleSession }));
+  has(step3.stdout, "✓");
+
+  // Step 4: Next prompt starts -> timer resets to 0s
+  const step4 = run(JSON.stringify({ agent_state: "thinking", session_id: lifecycleSession }));
+  has(step4.stdout, "⏱ 0s");
+
+  console.log("ok prompt timer dynamic lifecycle transitions");
+} catch (e) {
+  failed++;
+  console.log(`FAIL prompt timer dynamic lifecycle transitions: ${e.message}`);
+} finally {
+  try { fs.unlinkSync(lifecycleFile); } catch {}
+}
+
 process.exit(failed ? 1 : 0);

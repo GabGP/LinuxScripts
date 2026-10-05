@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 const fs = require("fs");
+const os = require("os");
+const path = require("path");
 const { execSync } = require("child_process");
 
 const LARGE_WINDOW_MIN = 1_000_000;
@@ -80,6 +82,137 @@ function formatLimit(label, limit, withCountdown) {
   return color(`${label} ${pct}%`) + countdown;
 }
 
+const RUNNING_ICON = process.env.STATUSLINE_RUNNING_ICON || process.env.AGY_TIMER_RUNNING_ICON || "⏱";
+const DONE_ICON = process.env.STATUSLINE_DONE_ICON || process.env.AGY_TIMER_DONE_ICON || "✓";
+
+const ACTIVE_AGENT_STATES = new Set([
+  "thinking",
+  "working",
+  "running",
+  "tool_use",
+  "tool-use",
+  "tool_call",
+  "executing",
+  "busy",
+  "active",
+  "streaming",
+  "generating",
+  "prompting",
+]);
+
+function isAgentActive(data) {
+  if (data.timer?.status === "active") return true;
+  if (data.timer?.status === "paused" || data.timer?.status === "done") return false;
+  if (data.is_running === true || data.is_streaming === true || data.loading === true) return true;
+  const raw = (data.agent_state || data.status || data.state || "").toLowerCase().trim();
+  if (!raw) return false;
+  if (raw === "idle" || raw === "done" || raw === "none" || raw === "needs-input" || raw === "waiting") {
+    return false;
+  }
+  return (
+    ACTIVE_AGENT_STATES.has(raw) ||
+    raw.startsWith("tool") ||
+    raw.includes("think") ||
+    raw.includes("work") ||
+    raw.includes("run") ||
+    raw.includes("gen")
+  );
+}
+
+function formatDuration(ms, active) {
+  if (ms < 1000) return active ? "0s" : "<1s";
+  const secs = active ? Math.floor(ms / 1000) : Math.round(ms / 1000);
+  if (secs < 60) return `${secs}s`;
+  const mins = Math.floor(secs / 60);
+  const remSecs = secs % 60;
+  if (mins < 60) return `${mins}m${String(remSecs).padStart(2, "0")}s`;
+  const hours = Math.floor(mins / 60);
+  const remMins = mins % 60;
+  return `${hours}h${String(remMins).padStart(2, "0")}m`;
+}
+
+function getTimerStatePath(data, prefix = "agy") {
+  if (process.env.STATUSLINE_TIMER_FILE) {
+    return process.env.STATUSLINE_TIMER_FILE;
+  }
+  const sid = data.session_id
+    || (process.env.AGY_SESSION_ID || process.env.CLAUDE_SESSION_ID)
+    || (process.ppid ? `pid-${process.ppid}` : "")
+    || (data.cwd ? Buffer.from(data.cwd).toString("hex").slice(0, 16) : "default");
+  const safeSid = String(sid).replace(/[^a-zA-Z0-9_-]/g, "_");
+  return path.join(os.tmpdir(), `${prefix}-timer-${safeSid}.json`);
+}
+
+function resolveTimer(data, prefix = "agy") {
+  if (data.timer && typeof data.timer === "object") {
+    const isAct = data.timer.status === "active";
+    const dur = data.timer.duration_ms ?? ((data.timer.duration_seconds || 0) * 1000);
+    return { active: isAct, durationMs: dur, formatted: formatDuration(dur, isAct) };
+  }
+
+  if (!data.agent_state && !data.status && !data.state) {
+    return null;
+  }
+
+  const timerFile = getTimerStatePath(data, prefix);
+  const active = isAgentActive(data);
+  const now = Date.now();
+
+  let prev = null;
+  try {
+    if (fs.existsSync(timerFile)) {
+      prev = JSON.parse(fs.readFileSync(timerFile, "utf8"));
+    }
+  } catch {}
+
+  const isStale = prev && prev.lastUpdate && (now - prev.lastUpdate > 24 * 3600 * 1000);
+  if (isStale) prev = null;
+
+  if (active) {
+    let startTime;
+    if (!prev || prev.status !== "active" || !prev.startTime) {
+      startTime = now;
+      try {
+        fs.writeFileSync(timerFile, JSON.stringify({ status: "active", startTime, durationMs: 0, lastUpdate: now }), "utf8");
+      } catch {}
+      return { active: true, durationMs: 0, formatted: "0s" };
+    } else {
+      startTime = prev.startTime;
+      const durationMs = Math.max(0, now - startTime);
+      try {
+        fs.writeFileSync(timerFile, JSON.stringify({ status: "active", startTime, durationMs, lastUpdate: now }), "utf8");
+      } catch {}
+      return { active: true, durationMs, formatted: formatDuration(durationMs, true) };
+    }
+  } else {
+    if (prev && prev.status === "active") {
+      const startTime = prev.startTime || now;
+      const durationMs = Math.max(0, now - startTime);
+      try {
+        fs.writeFileSync(timerFile, JSON.stringify({ status: "paused", durationMs, lastUpdate: now }), "utf8");
+      } catch {}
+      return { active: false, durationMs, formatted: formatDuration(durationMs, false) };
+    } else if (prev && prev.status === "paused") {
+      const durationMs = prev.durationMs || 0;
+      return { active: false, durationMs, formatted: formatDuration(durationMs, false) };
+    } else {
+      return null;
+    }
+  }
+}
+
+function formatTimerSegment(timerInfo, c, noColor) {
+  if (!timerInfo) return null;
+  const { active, formatted } = timerInfo;
+  if (active) {
+    const text = `${RUNNING_ICON} ${formatted}`;
+    return noColor ? text : c.yellow(text);
+  } else {
+    if (noColor) return `${DONE_ICON} ${formatted}`;
+    return `${c.green(DONE_ICON)} ${c.dim(formatted)}`;
+  }
+}
+
 try {
   const raw = fs.readFileSync(0, "utf8");
   const data = JSON.parse(raw);
@@ -127,7 +260,12 @@ try {
     segments.push(`$${cost.toFixed(2)}`);
   }
 
-  // 5. Rate Limits / Quotas (5h and 7d/weekly)
+  // 5. Turn execution timer (starts on prompt, pauses when answer returns)
+  const timer = resolveTimer(data, "agy");
+  const timerSegment = formatTimerSegment(timer, c, noColor);
+  if (timerSegment) segments.push(timerSegment);
+
+  // 6. Rate Limits / Quotas (5h and 7d/weekly)
   const is3P = data.model?.id?.toLowerCase().includes("claude");
   const fiveKey = is3P ? "3p-5h" : "gemini-5h";
   const weekKey = is3P ? "3p-weekly" : "gemini-weekly";

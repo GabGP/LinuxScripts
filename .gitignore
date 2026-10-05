@@ -13,3 +13,7 @@ kitty.conf.bak
 __pycache__/
 *.pyc
 *.pyo
+
+# Sensitive user configurations (contain personal paths & workspace history)
+settings.json
+config/**/settings.json
