@@ -60,6 +60,12 @@ install_script_item() {
     echo -e "  ${COLOR_GREEN}✔ Linked executable:${COLOR_RESET} ~/.local/bin/${name} -> $src"
 }
 
+print_statusline_activation_hint() {
+    echo -e "\n${COLOR_YELLOW}ℹ Claude Statusline installed, but it is not active yet.${COLOR_RESET}"
+    echo -e "  Add this to ~/.claude/settings.json to enable it:"
+    echo -e "  ${COLOR_CYAN}\"statusLine\": { \"type\": \"command\", \"command\": \"node ~/.claude/statusline.js\", \"padding\": 0, \"refreshInterval\": 1 }${COLOR_RESET}"
+}
+
 # ------------------------------------------------------------------------------
 # Configuration Installation Menu
 # ------------------------------------------------------------------------------
@@ -86,6 +92,7 @@ menu_install_configs() {
             install_config_item "Claude Statusline (Test)" "${SCRIPT_DIR}/config/claude/statusline.test.js" "${HOME}/.claude/statusline.test.js"
             install_config_item "Antigravity Statusline" "${SCRIPT_DIR}/config/agy/statusline.js" "${HOME}/.gemini/antigravity-cli/statusline.js"
             install_config_item "Antigravity Statusline (Test)" "${SCRIPT_DIR}/config/agy/statusline.test.js" "${HOME}/.gemini/antigravity-cli/statusline.test.js"
+            print_statusline_activation_hint
             ;;
         2)
             echo -e "\n${COLOR_BOLD}Installing Kitty configuration...${COLOR_RESET}"
@@ -103,6 +110,7 @@ menu_install_configs() {
             echo -e "\n${COLOR_BOLD}Installing Claude Code Statusline...${COLOR_RESET}"
             install_config_item "Claude Statusline" "${SCRIPT_DIR}/config/claude/statusline.js" "${HOME}/.claude/statusline.js"
             install_config_item "Claude Statusline (Test)" "${SCRIPT_DIR}/config/claude/statusline.test.js" "${HOME}/.claude/statusline.test.js"
+            print_statusline_activation_hint
             ;;
         6)
             echo -e "\n${COLOR_BOLD}Installing Antigravity CLI Statusline...${COLOR_RESET}"
@@ -184,6 +192,7 @@ install_both() {
     install_config_item "Claude Statusline (Test)" "${SCRIPT_DIR}/config/claude/statusline.test.js" "${HOME}/.claude/statusline.test.js"
     install_config_item "Antigravity Statusline" "${SCRIPT_DIR}/config/agy/statusline.js" "${HOME}/.gemini/antigravity-cli/statusline.js"
     install_config_item "Antigravity Statusline (Test)" "${SCRIPT_DIR}/config/agy/statusline.test.js" "${HOME}/.gemini/antigravity-cli/statusline.test.js"
+    print_statusline_activation_hint
 
     echo -e "\n${COLOR_BOLD}2. Linking scripts to ~/.local/bin...${COLOR_RESET}"
     chmod +x "${SCRIPT_DIR}/scripts/"*.sh
