@@ -17,8 +17,21 @@ const c = {
   yellow: (s) => (noColor ? s : `\x1b[33m${s}\x1b[0m`),
   orange: (s) => (noColor ? s : `\x1b[38;5;208m${s}\x1b[0m`),
   red: (s) => (noColor ? s : `\x1b[31m${s}\x1b[0m`),
+  alert: (s) => (noColor ? s : `\x1b[1;97;41m ${s} \x1b[0m`),
 };
 const SEP = noColor ? " · " : "\x1b[2;90m · \x1b[0m";
+
+// Cheapest to most expensive: green, yellow, orange, red. `max` gets a red badge.
+const MODEL_TIER_COLORS = [["haiku", c.green], ["sonnet", c.yellow], ["opus", c.orange], ["fable", c.red]];
+const EFFORT_COLORS = new Map([
+  ["low", c.green], ["medium", c.yellow], ["high", c.orange], ["xhigh", c.red], ["max", c.alert],
+]);
+const plain = (s) => s;
+
+function getModelColor(model) {
+  const name = `${model?.id || ""} ${model?.display_name || ""}`.toLowerCase();
+  return MODEL_TIER_COLORS.find(([tier]) => name.includes(tier))?.[1] || plain;
+}
 
 function formatTokens(n) {
   if (n >= 1_000_000) {
@@ -201,11 +214,12 @@ try {
   const segments = [];
 
   const modelName = data.model?.display_name || data.model?.id;
-  if (modelName) segments.push(c.bold(modelName));
+  if (modelName) segments.push(c.bold(getModelColor(data.model)(modelName)));
 
   const effort = data.effort?.level;
   const fast = Boolean(data.fast_mode);
-  if (effort || fast) segments.push(effort ? (fast ? `${effort} ⚡` : effort) : "⚡");
+  const effortText = effort && (EFFORT_COLORS.get(String(effort).toLowerCase()) || plain)(effort);
+  if (effort || fast) segments.push(effort ? (fast ? `${effortText} ⚡` : effortText) : "⚡");
 
   const win = data.context_window?.context_window_size || 200_000;
   const winStr = formatTokens(win);

@@ -5,6 +5,7 @@ const path = require("path");
 
 const SCRIPT = path.join(__dirname, "statusline.js");
 const WIN_1M = 1_000_000;
+const COLOR = { NO_COLOR: "" };
 
 function run(input, env = {}) {
   const r = spawnSync("node", [SCRIPT], {
@@ -88,6 +89,38 @@ const cases = [
     (o) => has(o, "✔ 5s"),
     { STATUSLINE_DONE_ICON: "✔" },
   ],
+  ...[
+    ["Haiku 5.5", "claude-haiku-5-5", "\x1b[32m"],
+    ["Sonnet 5.5", "claude-sonnet-5-5", "\x1b[33m"],
+    ["Opus 5.5", "claude-opus-5-5", "\x1b[38;5;208m"],
+    ["Fable 5.1", "claude-fable-5-1", "\x1b[31m"],
+  ].map(([name, id, code]) => [
+    `model color ${name}`,
+    sample({ extra: { model: { id, display_name: name }, effort: undefined } }),
+    (o) => has(o, `\x1b[1m${code}${name}\x1b[0m`),
+    COLOR,
+  ]),
+  [
+    "unknown model has no tier color",
+    sample({ extra: { model: { id: "some-model", display_name: "Some Model" }, effort: undefined } }),
+    (o) => has(o, "\x1b[1mSome Model\x1b[0m"),
+    COLOR,
+  ],
+  ...[
+    ["low", "\x1b[32mlow\x1b[0m"],
+    ["medium", "\x1b[33mmedium\x1b[0m"],
+    ["high", "\x1b[38;5;208mhigh\x1b[0m"],
+    ["xhigh", "\x1b[31mxhigh\x1b[0m"],
+    ["max", "\x1b[1;97;41m max \x1b[0m"],
+  ].map(([level, colored]) => [
+    `effort color ${level}`,
+    sample({ extra: { effort: { level } } }),
+    (o) => has(o, colored),
+    COLOR,
+  ]),
+  ["unknown effort has no color", sample({ extra: { effort: { level: "turbo" } } }), (o) => has(o, "\x1b[0mturbo\x1b[2;90m"), COLOR],
+  ["fast badge follows colored effort", sample({ extra: { effort: { level: "max" }, fast_mode: true } }), (o) => has(o, "\x1b[1;97;41m max \x1b[0m ⚡"), COLOR],
+  ["no color keeps max plain", sample({ extra: { effort: { level: "max" } } }), (o) => has(o, "Opus 5.5 · max · ")],
 ];
 
 let failed = 0;

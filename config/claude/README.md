@@ -7,6 +7,8 @@ A lightweight, zero-dependency Node.js statusline script for [Claude Code](https
 ## ✨ Features
 
 - **Model & Effort Indicators**: Displays active model name (`Opus 5.5`, `Sonnet 5.5`) along with effort level (`high`, `low`) and fast mode badge (`⚡`).
+  - Model name colored by cost tier: Haiku green, Sonnet yellow, Opus orange, Fable red. Unrecognized models stay uncolored.
+  - Effort colored by intensity: `low` green, `medium` yellow, `high` orange, `xhigh` red, and `max` as a white-on-red badge so it cannot be missed.
 - **Context Window Usage Gauge**:
   - 4-bar visual meter (`▮▮▯▯`) calibrated to context size (e.g. 400k threshold band for 1M models, proportional for standard models).
   - Human-friendly token formatting (`143k/1M`, `180k/200k`).
@@ -55,7 +57,7 @@ Opus 5.5 · high ⚡ · ▮▮▯▯ 143k/1M · $0.84 · ✓ 14s · 5h 32% ↻2h
 ```text
 config/claude/
 ├── statusline.js       # Main statusline script (receives JSON via stdin)
-├── statusline.test.js  # Automated unit test suite (23 test cases + lifecycle suite)
+├── statusline.test.js  # Automated unit test suite (36 test cases + lifecycle suite)
 └── README.md           # Documentation and configuration reference
 ```
 
@@ -110,7 +112,7 @@ Run the included unit test suite using Node.js:
 node config/claude/statusline.test.js
 ```
 
-The test runner covers 23 test cases and dynamic prompt lifecycle verification, including:
+The test runner covers 36 test cases and dynamic prompt lifecycle verification, including:
 - Dynamic prompt execution timer start (`⏱ 0s`), live ticking, and paused display (`✓ 14s`)
 - Multi-step prompt lifecycle transitions (active -> paused -> reset on next prompt)
 - Sub-second execution formatting (`✓ <1s`) and minute/hour formatting (`1m05s`, `1h01m`)
@@ -119,4 +121,5 @@ The test runner covers 23 test cases and dynamic prompt lifecycle verification, 
 - Reset countdown formatting (days, hours, minutes, past expirations)
 - Context window token formatting & threshold bands across 200k and 1M models
 - Fast mode and effort level badge toggling
+- Model tier and effort level colors (and plain output under `NO_COLOR`)
 - Graceful handling of missing fields or invalid JSON

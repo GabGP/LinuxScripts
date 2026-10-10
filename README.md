@@ -49,7 +49,7 @@ LinuxScripts/
 │   ├── bash/.bashrc             # → ~/.bashrc
 │   ├── claude/
 │   │   ├── statusline.js        # → ~/.claude/statusline.js (Claude Code CLI statusline)
-│   │   ├── statusline.test.js   # Automated unit test suite (23 tests + lifecycle)
+│   │   ├── statusline.test.js   # Automated unit test suite (36 tests + lifecycle)
 │   │   └── README.md            # Statusline guide & activation instructions
 │   ├── kitty/
 │   │   ├── kitty.conf           # → ~/.config/kitty/kitty.conf
@@ -76,7 +76,7 @@ LinuxScripts/
 - **Kitty** — Uses MesloLGS Nerd Font with declarative configuration (`tab_bar.conf`), custom Powerline tabs, and right-aligned live status widgets (Open-Meteo Weather, RAM usage, CPU load & temperature, Battery status, and 24-hour Clock), plus F1 `btop` overlay shortcut. Features plug-and-play widget auto-discovery, frame-scoped render memoization, and zero-polling kernel interrupt timers. See [tab_bar/README.md](config/kitty/tab_bar/README.md) for architecture and widget development guide.
 - **Starship** — Continuous Powerline capsule layout inspired by [Gruvbox-Rainbow](https://starship.rs/presets/gruvbox-rainbow), with a modular color palette. All 101 default Starship modules are preserved. Edit the color variables at the top of [starship.toml](config/starship/starship.toml) to swap palettes easily.
 - **Bash** — User environment variables, path exports, and Starship shell hook.
-- **Claude Code** — Custom zero-dependency Node.js statusline displaying current model, effort level / fast mode (`⚡`), visual 4-bar context window usage meter (`▮▮▯▯`) with threshold color scaling, real-time session cost in USD, turn execution timer that starts on prompt and pauses on response (`⏱ 14s` / `✓ 14s`), and 5h/7d rate limit trackers with automatic reset countdown timers. Includes an automated unit test suite with 23 test cases and dynamic prompt lifecycle verification (`statusline.test.js`). To activate, configure your local `~/.claude/settings.json` (see [config/claude/README.md](config/claude/README.md)).
+- **Claude Code** — Custom zero-dependency Node.js statusline displaying current model colored by tier (Haiku green → Sonnet yellow → Opus orange), effort level colored by intensity (`max` as a red badge) / fast mode (`⚡`), visual 4-bar context window usage meter (`▮▮▯▯`) with threshold color scaling, real-time session cost in USD, turn execution timer that starts on prompt and pauses on response (`⏱ 14s` / `✓ 14s`), and 5h/7d rate limit trackers with automatic reset countdown timers. Includes an automated unit test suite with 36 test cases and dynamic prompt lifecycle verification (`statusline.test.js`). To activate, configure your local `~/.claude/settings.json` (see [config/claude/README.md](config/claude/README.md)).
 - **Antigravity CLI (`agy`)** — Companion custom statusline faithfully mirroring the Claude Code statusline architecture and aesthetics. Displays active model name (`Gemini 3.8 Flash`), normalized effort level, fast mode badge (`⚡`), visual 4-bar context window meter (`▮▮▯▯`) with dynamic threshold color grading, turn execution timer that starts on prompt and pauses on response (`⏱ 14s` / `✓ 14s`), dual 5-hour and 7-day rate-limit countdown timers (`5h 9% ↻4h30m · 7d 45% ↻3d08h`), and Git branch indicator (` main`). Includes an automated unit test suite with 28 test cases and dynamic prompt lifecycle verification (`statusline.test.js`). To activate, configure your local `~/.gemini/antigravity-cli/settings.json` (see [config/agy/README.md](config/agy/README.md)).
 
 ## License
