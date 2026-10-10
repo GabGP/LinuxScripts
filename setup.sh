@@ -76,7 +76,7 @@ menu_install_configs() {
     echo "  2) Kitty Terminal (~/.config/kitty/)"
     echo "  3) Starship Prompt (~/.config/starship.toml)"
     echo "  4) Bash Shell (~/.bashrc)"
-    echo "  5) Claude Code Statusline (~/.claude/statusline.js)"
+    echo "  5) Claude Code Statusline & Gemini Worker Skill (~/.claude/)"
     echo "  6) Antigravity CLI Statusline (~/.gemini/antigravity-cli/statusline.js)"
     echo "  7) Back to Main Menu"
     echo ""
@@ -90,6 +90,7 @@ menu_install_configs() {
             install_config_item "Bash" "${SCRIPT_DIR}/config/bash/.bashrc" "${HOME}/.bashrc"
             install_config_item "Claude Statusline" "${SCRIPT_DIR}/config/claude/statusline.js" "${HOME}/.claude/statusline.js"
             install_config_item "Claude Statusline (Test)" "${SCRIPT_DIR}/config/claude/statusline.test.js" "${HOME}/.claude/statusline.test.js"
+            install_config_item "Claude Gemini Worker Skill" "${SCRIPT_DIR}/config/claude/skills/gemini-worker" "${HOME}/.claude/skills/gemini-worker"
             install_config_item "Antigravity Statusline" "${SCRIPT_DIR}/config/agy/statusline.js" "${HOME}/.gemini/antigravity-cli/statusline.js"
             install_config_item "Antigravity Statusline (Test)" "${SCRIPT_DIR}/config/agy/statusline.test.js" "${HOME}/.gemini/antigravity-cli/statusline.test.js"
             print_statusline_activation_hint
@@ -107,9 +108,10 @@ menu_install_configs() {
             install_config_item "Bash" "${SCRIPT_DIR}/config/bash/.bashrc" "${HOME}/.bashrc"
             ;;
         5)
-            echo -e "\n${COLOR_BOLD}Installing Claude Code Statusline...${COLOR_RESET}"
+            echo -e "\n${COLOR_BOLD}Installing Claude Code Statusline & Gemini Worker Skill...${COLOR_RESET}"
             install_config_item "Claude Statusline" "${SCRIPT_DIR}/config/claude/statusline.js" "${HOME}/.claude/statusline.js"
             install_config_item "Claude Statusline (Test)" "${SCRIPT_DIR}/config/claude/statusline.test.js" "${HOME}/.claude/statusline.test.js"
+            install_config_item "Claude Gemini Worker Skill" "${SCRIPT_DIR}/config/claude/skills/gemini-worker" "${HOME}/.claude/skills/gemini-worker"
             print_statusline_activation_hint
             ;;
         6)
@@ -190,6 +192,7 @@ install_both() {
     install_config_item "Bash" "${SCRIPT_DIR}/config/bash/.bashrc" "${HOME}/.bashrc"
     install_config_item "Claude Statusline" "${SCRIPT_DIR}/config/claude/statusline.js" "${HOME}/.claude/statusline.js"
     install_config_item "Claude Statusline (Test)" "${SCRIPT_DIR}/config/claude/statusline.test.js" "${HOME}/.claude/statusline.test.js"
+    install_config_item "Claude Gemini Worker Skill" "${SCRIPT_DIR}/config/claude/skills/gemini-worker" "${HOME}/.claude/skills/gemini-worker"
     install_config_item "Antigravity Statusline" "${SCRIPT_DIR}/config/agy/statusline.js" "${HOME}/.gemini/antigravity-cli/statusline.js"
     install_config_item "Antigravity Statusline (Test)" "${SCRIPT_DIR}/config/agy/statusline.test.js" "${HOME}/.gemini/antigravity-cli/statusline.test.js"
     print_statusline_activation_hint
