@@ -17,3 +17,6 @@ __pycache__/
 # Sensitive user configurations (contain personal paths & workspace history)
 settings.json
 config/**/settings.json
+
+# Personal Ansible values (see ansible/personal.example.yml)
+ansible/personal.yml

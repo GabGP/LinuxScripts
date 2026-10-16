@@ -1,0 +1,86 @@
+---
+# Panel layout: config/plasma/layout.js (made by scripts/save-plasma-layout.sh)
+# is replayed only when it differs from the last one applied on this machine,
+# so tweaks made in the live session are not undone on every run.
+- name: Checksum saved Plasma layout
+  ansible.builtin.stat:
+    path: "{{ repo_root }}/config/plasma/layout.js"
+    checksum_algorithm: sha256
+  register: plasma_layout
+
+- name: Read last applied layout checksum
+  ansible.builtin.slurp: { path: "{{ layout_marker }}" }
+  register: plasma_applied
+  failed_when: false
+
+- name: Replace panels and desktop widgets with the saved layout
+  when: (plasma_applied.content | default('') | b64decode | trim) != plasma_layout.stat.checksum
+  block:
+    - name: Create state directory
+      ansible.builtin.file:
+        path: "{{ layout_marker | dirname }}"
+        state: directory
+        mode: "0755"
+
+    - name: Run the layout script in plasmashell
+      ansible.builtin.command:
+        argv: [busctl, --user, call, org.kde.plasmashell, /PlasmaShell,
+               org.kde.PlasmaShell, evaluateScript, s,
+               "{{ reset_js ~ lookup('ansible.builtin.file', repo_root ~ '/config/plasma/layout.js') ~ rekey_js }}"]
+      changed_when: true
+      vars:
+        reset_js: |
+          panels().forEach(function (p) { p.remove(); });
+          desktops().forEach(function (d) { d.widgets().forEach(function (w) { w.remove(); }); });
+        # Desktop icon positions ("Applet-41:x,y,w,h,r;") are keyed by widget ID,
+        # and the replay hands out new IDs. Re-key them, matching in ID order.
+        rekey_js: |
+          function appletId(entry) { return parseInt(entry.split(":")[0].slice(7), 10); }
+          desktops().forEach(function (d, i) {
+            var saved = ((layout.desktops[i] || {}).config || {})["/"] || {};
+            var widgets = d.widgets().sort(function (a, b) { return a.id - b.id; });
+            d.currentConfigGroup = [];
+            Object.keys(saved).forEach(function (key) {
+              if (key.indexOf("ItemGeometries") !== 0) return;
+              var entries = saved[key].split(";").filter(String)
+                .sort(function (a, b) { return appletId(a) - appletId(b); });
+              d.writeConfig(key, entries.map(function (e, j) {
+                return widgets[j] ? "Applet-" + widgets[j].id + ":" + e.split(":")[1] + ";" : "";
+              }).join(""));
+            });
+            d.reloadConfig();
+          });
+
+    - name: Record applied layout
+      ansible.builtin.copy:
+        dest: "{{ layout_marker }}"
+        content: "{{ plasma_layout.stat.checksum }}\n"
+        mode: "0644"
+
+# Tiling: kwinrc keys it by virtual desktop ID and screen UUID, which are new
+# on every install, so the IDs are looked up on the machine being set up.
+- name: Read KWin virtual desktops
+  ansible.builtin.command: >-
+    busctl --user --json=short get-property org.kde.KWin /VirtualDesktopManager
+    org.kde.KWin.VirtualDesktopManager desktops
+  register: kwin_desktops
+  check_mode: false
+  changed_when: false
+
+- name: Read KWin screens
+  ansible.builtin.slurp: { path: "{{ home }}/.config/kwinoutputconfig.json" }
+  register: kwin_outputs
+
+- name: Write tiling layout for every desktop and screen
+  community.general.kdeconfig:
+    path: "{{ home }}/.config/kwinrc"
+    values:
+      - { groups: [Tiling, "{{ item.0 }}", "{{ item.1 }}"], key: padding, value: "{{ kwin_tiling.padding }}" }
+      - { groups: [Tiling, "{{ item.0 }}", "{{ item.1 }}"], key: tiles,
+          value: "{{ kwin_tiling.tiles | to_json(separators=[',', ':']) }}" }
+  loop: "{{ desktop_ids | product(screen_uuids) | list }}"
+  vars:
+    desktop_ids: "{{ (kwin_desktops.stdout | from_json).data | map(attribute=1) | list }}"
+    screen_uuids: "{{ (kwin_outputs.content | b64decode | from_json
+                      | selectattr('name', 'eq', 'outputs') | first).data
+                      | map(attribute='uuid') | list }}"

@@ -1,0 +1,17 @@
+---
+# Rebuilds this machine on top of a fresh Fedora KDE Plasma install.
+# Run it through ../bootstrap.sh from a logged-in Plasma session, as your
+# normal user. bootstrap.sh installs the collection and writes personal.yml.
+- name: Reproduce Fedora KDE setup
+  hosts: local
+  vars_files:
+    # Your values if bootstrap.sh has written them, else the empty example
+    - [personal.yml, personal.example.yml]
+  roles:
+    - { role: repos, tags: [repos] }
+    - { role: packages, tags: [packages] }
+    - { role: flatpaks, tags: [flatpaks] }
+    - { role: system, tags: [system] }
+    - { role: tools, tags: [tools] }
+    - { role: dotfiles, tags: [dotfiles] }
+    - { role: kde, tags: [kde] }

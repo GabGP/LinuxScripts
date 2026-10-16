@@ -1,0 +1,70 @@
+---
+# Plasma settings that differ from a fresh install. Log out and back in to
+# apply them. Panel layout and KWin tiling live in layout.yml.
+- name: Write KDE config keys
+  community.general.kdeconfig:
+    path: "{{ home }}/.config/{{ item.file }}"
+    values: "{{ item.settings }}"
+  loop_control: { label: "{{ item.file }}" }
+  loop:
+    - file: kdeglobals
+      settings:
+        - { group: General, key: TerminalApplication, value: kitty }
+        - { group: General, key: TerminalService, value: kitty.desktop }
+    - file: kwinrc
+      settings:
+        - { group: NightColor, key: Active, bool_value: true }
+        - { group: NightColor, key: Mode, value: Constant }
+        - { group: Effect-blur, key: BlurStrength, value: "6" }
+        - { group: Effect-blur, key: NoiseStrength, value: "0" }
+    - file: kcminputrc
+      settings:
+        - { groups: [Libinput, "2", "7", SynPS/2 Synaptics TouchPad], key: NaturalScroll, bool_value: true }
+        - { groups: [Libinput, "2", "7", SynPS/2 Synaptics TouchPad], key: ScrollFactor, value: "0.5" }
+        - { groups: [Libinput, "1133", "16505", "Logitech G Pro "], key: PointerAcceleration, value: "-0.800" }
+        - { groups: [Libinput, "1133", "16505", "Logitech G Pro "], key: ScrollFactor, value: "0.75" }
+    - file: powerdevilrc
+      settings:
+        - { groups: [AC, Display], key: DisplayBrightness, value: "100" }
+        - { groups: [AC, Display], key: UseProfileSpecificDisplayBrightness, bool_value: true }
+        - { groups: [AC, Performance], key: PowerProfile, value: performance }
+        - { groups: [Battery, Display], key: UseProfileSpecificDisplayBrightness, bool_value: true }
+        - { groups: [Battery, Performance], key: PowerProfile, value: balanced }
+        - { groups: [LowBattery, Performance], key: PowerProfile, value: power-saver }
+        - { group: BatteryManagement, key: BatteryLowLevel, value: "20" }
+    - file: plasma-localerc
+      settings:
+        - { group: Formats, key: LANG, value: en_US.UTF-8 }
+        - { group: Formats, key: LC_MEASUREMENT, value: de_DE.UTF-8 }
+        - { group: Formats, key: LC_PAPER, value: de_DE.UTF-8 }
+        - { group: Formats, key: LC_TIME, value: de_DE.UTF-8 }
+    - file: kglobalshortcutsrc
+      settings:
+        - { groups: [services, kitty.desktop], key: _launch, value: Ctrl+Alt+T }
+        - { groups: [services, org.kde.konsole.desktop], key: _launch, value: none }
+    - file: dolphinrc
+      settings:
+        - { group: MainWindow, key: MenuBar, value: Disabled }
+    - file: mimeapps.list
+      settings:
+        - { group: Default Applications, key: application/pdf, value: org.onlyoffice.desktopeditors.desktop; }
+
+- name: Make Kitty the default terminal
+  ansible.builtin.copy:
+    dest: "{{ home }}/.config/xdg-terminals.list"
+    content: "kitty.desktop\n"
+    mode: "0644"
+
+- name: Read current global theme
+  ansible.builtin.command: kreadconfig6 --group KDE --key LookAndFeelPackage
+  register: kde_theme
+  check_mode: false
+  changed_when: false
+
+- name: Apply Breeze Dark
+  when: kde_theme.stdout != 'org.kde.breezedark.desktop'
+  ansible.builtin.command: plasma-apply-lookandfeel --apply org.kde.breezedark.desktop
+  changed_when: true
+
+- name: Restore panel layout and KWin tiling
+  ansible.builtin.include_tasks: layout.yml

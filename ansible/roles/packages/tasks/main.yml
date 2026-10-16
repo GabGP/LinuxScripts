@@ -1,0 +1,23 @@
+---
+- name: Install packages
+  become: true
+  ansible.builtin.dnf5:
+    name: "{{ dnf_packages }}"
+
+- name: Gather installed packages
+  ansible.builtin.package_facts:
+
+- name: Install RPMs from URLs
+  become: true
+  ansible.builtin.dnf5:
+    name: "{{ item.value }}"
+    disable_gpg_check: true
+  loop: "{{ dnf_rpm_urls | dict2items }}"
+  loop_control: { label: "{{ item.key }}" }
+  when: item.key not in ansible_facts.packages
+
+- name: Remove unwanted stock apps
+  become: true
+  ansible.builtin.dnf5:
+    name: "{{ dnf_removed }}"
+    state: absent

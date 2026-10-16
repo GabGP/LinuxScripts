@@ -1,0 +1,19 @@
+---
+- name: Create {{ font }} font directory
+  ansible.builtin.file:
+    path: "{{ home }}/.local/share/fonts/{{ font }}"
+    state: directory
+    mode: "0755"
+
+- name: Download {{ font }} Nerd Font
+  ansible.builtin.unarchive:
+    src: "https://github.com/ryanoasis/nerd-fonts/releases/latest/download/{{ font }}.tar.xz"
+    dest: "{{ home }}/.local/share/fonts/{{ font }}"
+    remote_src: true
+    creates: "{{ home }}/.local/share/fonts/{{ font }}/LICENSE.txt"
+  register: font_unpack
+
+- name: Refresh font cache
+  when: font_unpack is changed
+  ansible.builtin.command: fc-cache -f {{ home }}/.local/share/fonts/{{ font }}
+  changed_when: true

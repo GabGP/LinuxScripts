@@ -5,7 +5,28 @@ Personal Bash scripts and terminal configs for **Fedora Linux**.
 > [!NOTE]
 > Tailored for my setup: DNF, Flatpak, Kitty, Starship, Rust (`rustup`), and Antigravity CLI (`agy`).
 
-## Setup
+## Rebuilding the whole system
+
+On a fresh **Fedora KDE Plasma** install, log in and run:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/GabGP/LinuxScripts/main/bootstrap.sh | bash
+```
+
+`bootstrap.sh` installs Ansible and the `community.general` collection, clones this repo to `~/Desktop/LinuxScripts`, and runs `ansible/site.yml`. The playbook applies everything that differs from a stock install: repos, DNF packages and removals, Flatpaks, kernel arguments, groups, tools installed outside DNF (rustup, Starship, Claude Code, `/opt` archives, Nerd Fonts, VS Code extensions), the dotfile links below, the Claude and agy statuslines, and Plasma settings, including the panel layout and KWin tiling. Running it again only changes what has drifted.
+
+All package and app lists live in [ansible/group_vars/all.yml](ansible/group_vars/all.yml). Personal values (your git name and email) are kept out of git: on the first run, `bootstrap.sh` asks for them and saves them to `ansible/personal.yml`, which is gitignored. [ansible/personal.example.yml](ansible/personal.example.yml) lists the keys. Edit `personal.yml` to change them later. Always run the playbook through `bootstrap.sh`, which makes sure the collection is installed. Extra arguments go to `ansible-playbook`:
+
+```bash
+./bootstrap.sh -t kde              # roles: repos packages flatpaks system tools dotfiles kde
+./bootstrap.sh --check --diff      # dry run
+```
+
+After changing the panel, run `scripts/save-plasma-layout.sh` and commit `config/plasma/layout.js`. The playbook replays that file on a machine only when it differs from the last layout applied there, so your live tweaks are not undone on every run. The tiling layout is `kwin_tiling` in `all.yml`. Log out and back in after the kde role to apply everything.
+
+Not automated: Antigravity CLI (`agy`, the playbook reminds you) and Radmin VPN under Wine.
+
+## Setup (dotfiles only)
 
 ```bash
 git clone https://github.com/GabGP/LinuxScripts.git
@@ -41,7 +62,10 @@ fc-cache -f ~/.local/share/fonts/Meslo
 
 ```text
 LinuxScripts/
+├── ansible/                     # Full-system playbook (site.yml, group_vars/all.yml, roles/)
+├── bootstrap.sh                 # Fresh-install entry point: installs Ansible, runs the playbook
 ├── config/
+│   ├── plasma/layout.js         # Panel and desktop layout, replayed by the Ansible kde role
 │   ├── agy/
 │   │   ├── statusline.js        # → ~/.gemini/antigravity-cli/statusline.js (AGY CLI statusline)
 │   │   ├── statusline.test.js   # Automated unit test suite (28 tests + lifecycle)
@@ -67,6 +91,7 @@ LinuxScripts/
 │   │   └── backup.sh
 │   ├── update.sh                # Updates DNF, Flatpak, Starship, agy, Rust
 │   ├── check-updates.sh         # Checks for pending updates (read-only)
+│   ├── save-plasma-layout.sh    # Saves the live Plasma layout to config/plasma/layout.js
 │   └── ezin.sh                  # Installs archive packages into /opt
 ├── setup.sh                     # Interactive setup manager
 └── backups/                     # Auto-generated config backups (gitignored)

@@ -1,0 +1,63 @@
+---
+# Tools installed outside DNF. Each task is skipped once its binary exists;
+# day-to-day updates stay with scripts/update.sh.
+- name: Install rustup (stable toolchain)
+  ansible.builtin.shell: >-
+    set -o pipefail &&
+    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --no-modify-path
+  args: { executable: /bin/bash, creates: "{{ home }}/.cargo/bin/rustup" }
+
+- name: Add rustup components
+  ansible.builtin.command: "{{ home }}/.cargo/bin/rustup component add {{ item }}"
+  loop: "{{ rust_components }}"
+  register: rustup_out
+  changed_when: "'downloading' in rustup_out.stderr"
+
+- name: Install Starship
+  become: true
+  ansible.builtin.shell: set -o pipefail && curl -sS https://starship.rs/install.sh | sh -s -- -y
+  args: { executable: /bin/bash, creates: /usr/local/bin/starship }
+
+- name: Install Claude Code
+  ansible.builtin.shell: set -o pipefail && curl -fsSL https://claude.ai/install.sh | bash
+  args: { executable: /bin/bash, creates: "{{ home }}/.local/bin/claude" }
+
+- name: Install uv-managed Pythons
+  ansible.builtin.command: uv python install {{ item }}
+  args: { creates: "{{ home }}/.local/bin/python{{ item }}" }
+  loop: "{{ uv_pythons }}"
+
+- name: Create /opt archive targets
+  become: true
+  ansible.builtin.file: { path: "{{ item.dest }}", state: directory, mode: "0755" }
+  loop: "{{ opt_archives }}"
+  loop_control: { label: "{{ item.dest }}" }
+
+- name: Unpack archives into /opt
+  become: true
+  ansible.builtin.unarchive:
+    src: "{{ item.url }}"
+    dest: "{{ item.dest }}"
+    remote_src: true
+    creates: "{{ item.creates }}"
+  loop: "{{ opt_archives }}"
+  loop_control: { label: "{{ item.creates }}" }
+
+- name: Install Nerd Fonts
+  ansible.builtin.include_tasks: font.yml
+  loop: "{{ nerd_fonts }}"
+  loop_control: { loop_var: font }
+
+- name: Install VS Code extensions
+  ansible.builtin.include_tasks: vscode.yml
+
+- name: Check for Antigravity CLI
+  ansible.builtin.stat: { path: "{{ home }}/.local/bin/agy" }
+  register: agy_bin
+
+- name: Remind to install Antigravity CLI
+  when: not agy_bin.stat.exists
+  ansible.builtin.debug:
+    msg: >-
+      agy is not installed. Install Antigravity CLI with its official
+      installer, then run `ansible-playbook -K site.yml -t dotfiles` again.

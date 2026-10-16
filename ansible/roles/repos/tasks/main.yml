@@ -1,0 +1,25 @@
+---
+- name: Import third-party repo signing keys
+  become: true
+  ansible.builtin.rpm_key:
+    key: "{{ item.gpgkey }}"
+  loop: "{{ dnf_repos }}"
+  loop_control: { label: "{{ item.name }}" }
+
+- name: Add third-party repos
+  become: true
+  ansible.builtin.yum_repository:
+    name: "{{ item.name }}"
+    file: "{{ item.file }}"
+    description: "{{ item.description }}"
+    baseurl: "{{ item.baseurl }}"
+    gpgkey: "{{ item.gpgkey }}"
+    gpgcheck: true
+  loop: "{{ dnf_repos }}"
+  loop_control: { label: "{{ item.name }}" }
+
+- name: Enable Flathub
+  become: true
+  community.general.flatpak_remote:
+    name: flathub
+    flatpakrepo_url: https://dl.flathub.org/repo/flathub.flatpakrepo

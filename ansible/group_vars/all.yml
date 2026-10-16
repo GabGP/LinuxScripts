@@ -1,0 +1,94 @@
+---
+# Everything this machine has on top of a stock Fedora KDE Plasma install.
+# Edit these lists, then re-run the playbook.
+repo_root: "{{ playbook_dir | dirname }}"
+home: "{{ ansible_facts.env.HOME }}"
+fedora: "{{ ansible_facts.distribution_major_version }}"
+
+dnf_repos:
+  - name: code
+    file: vscode                      # repo file names match the vendors' own
+    description: Visual Studio Code
+    baseurl: https://packages.microsoft.com/yumrepos/vscode
+    gpgkey: https://packages.microsoft.com/keys/microsoft.asc
+  - name: WineHQ
+    file: winehq
+    description: WineHQ packages
+    baseurl: "https://dl.winehq.org/wine-builds/fedora/{{ fedora }}"
+    gpgkey: https://dl.winehq.org/wine-builds/winehq.key
+
+dnf_packages:
+  [btop, fastfetch, ripgrep, zoxide,                          # CLI
+   kitty,                                                     # terminal
+   code, gcc, make, java-25-openjdk-devel, nodejs24, pnpm, uv, # dev
+   qemu-system-arm,                                           # embedded
+   chromium, wireshark, winehq-stable]                        # apps
+
+# RPMs that are not in any repo: rpm name -> download URL
+dnf_rpm_urls:
+  tux-manager: "https://github.com/benapetr/TuxManager/releases/download/v1.0.8/tux-manager-1.0.8-1.fc{{ fedora }}.x86_64.rpm"
+
+# Stock KDE apps that were removed
+dnf_removed:
+  [dragon, kmahjongg, kmines, kpat, okular,
+   libreoffice-calc, libreoffice-draw, libreoffice-impress,
+   libreoffice-math, libreoffice-writer]
+
+flatpak_apps:
+  - io.dbeaver.DBeaverCommunity
+  - org.onlyoffice.desktopeditors
+  - org.telegram.desktop
+
+user_groups: [dialout]
+kernel_args: [i915.enable_psr=0]   # Intel panel self-refresh flicker fix
+
+rust_components: [rust-src]
+uv_pythons: ["3.11"]
+
+# Checksum of the last Plasma layout replayed here (see roles/kde/tasks/layout.yml)
+layout_marker: "{{ home }}/.local/state/linuxscripts/plasma-layout.sha256"
+
+# KWin tiling layout, applied to every virtual desktop on every screen
+kwin_tiling:
+  padding: 4
+  tiles:
+    layoutDirection: horizontal
+    tiles: [{ width: 0.25 }, { width: 0.5 }, { width: 0.25 }]
+
+# Archives unpacked into /opt (what ezin does by hand)
+opt_archives:
+  - url: https://developer.arm.com/-/media/Files/downloads/gnu/13.2.rel1/binrel/arm-gnu-toolchain-13.2.rel1-x86_64-arm-none-eabi.tar.xz
+    dest: /opt/toolchains
+    creates: /opt/toolchains/arm-gnu-toolchain-13.2.Rel1-x86_64-arm-none-eabi
+  - url: https://freeware.the-meiers.org/CoolTermLinux64Bit.zip
+    dest: /opt
+    creates: /opt/CoolTermLinux64Bit
+
+nerd_fonts: [Meslo]
+
+vscode_extensions:
+  - anthropic.claude-code
+  - dan-c-underwood.arm
+  - dracula-theme.theme-dracula
+  - enkia.tokyo-night
+  - fill-labs.dependi
+  - ms-python.debugpy
+  - ms-python.python
+  - ms-python.vscode-pylance
+  - ms-python.vscode-python-envs
+  - ms-vscode.cpptools
+  - ms-vscode.cpptools-extension-pack
+  - ms-vscode.cpptools-themes
+  - ms-vscode.makefile-tools
+  - pkief.material-icon-theme
+  - redhat.java
+  - rust-lang.rust-analyzer
+  - tomoki1207.pdf
+  - vscjava.vscode-gradle
+  - vscjava.vscode-java-debug
+  - vscjava.vscode-java-dependency
+  - vscjava.vscode-java-pack
+  - vscjava.vscode-java-test
+  - vscjava.vscode-maven
+  - yzhang.markdown-all-in-one
+  - zixuanwang.linkerscript

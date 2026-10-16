@@ -1,0 +1,6 @@
+---
+# Personal values, kept out of git. bootstrap.sh asks for them on first run
+# and writes ansible/personal.yml (gitignored). To change them later, edit
+# that file. Empty values are skipped.
+git_user_name: ""
+git_user_email: ""   # e.g. your GitHub noreply address

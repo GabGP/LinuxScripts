@@ -1,0 +1,71 @@
+---
+# Same links as setup.sh. Real files in the way are moved to <name>.pre-ansible.
+- name: Define repo links and statusline hosts
+  ansible.builtin.set_fact:
+    dotfile_links:
+      - { src: config/kitty, dest: .config/kitty }
+      - { src: config/starship/starship.toml, dest: .config/starship.toml }
+      - { src: config/bash/.bashrc, dest: .bashrc }
+      - { src: config/claude/statusline.js, dest: .claude/statusline.js }
+      - { src: config/claude/statusline.test.js, dest: .claude/statusline.test.js }
+      - { src: config/claude/skills/gemini-worker, dest: .claude/skills/gemini-worker }
+      - { src: config/agy/statusline.js, dest: .gemini/antigravity-cli/statusline.js }
+      - { src: config/agy/statusline.test.js, dest: .gemini/antigravity-cli/statusline.test.js }
+      - { src: scripts/update.sh, dest: .local/bin/update }
+      - { src: scripts/check-updates.sh, dest: .local/bin/check-updates }
+    statusline_hosts:
+      - file: .claude/settings.json
+        mode: "0644"
+        statusLine: { type: command, command: node ~/.claude/statusline.js,
+                      padding: 0, refreshInterval: 1 }
+      - file: .gemini/antigravity-cli/settings.json
+        mode: "0600"   # also holds tool permissions and trusted workspaces
+        statusLine: { type: command, command: node ~/.gemini/antigravity-cli/statusline.js,
+                      enabled: true, stack_with_default: false, padding: 0, refreshInterval: 1 }
+
+- name: Check link targets
+  ansible.builtin.stat: { path: "{{ home }}/{{ item.dest }}", follow: false }
+  loop: "{{ dotfile_links }}"
+  loop_control: { label: "{{ item.dest }}" }
+  register: link_targets
+
+- name: Back up real files in the way
+  ansible.builtin.command: mv {{ item.stat.path }} {{ item.stat.path }}.pre-ansible
+  loop: "{{ link_targets.results }}"
+  loop_control: { label: "{{ item.item.dest }}" }
+  when: item.stat.exists and not item.stat.islnk
+  changed_when: true
+
+- name: Create parent directories  # no mode: never touch existing perms, e.g. ~
+  ansible.builtin.file:  # noqa: risky-file-permissions
+    path: "{{ (home + '/' + item.dest) | dirname }}"
+    state: directory
+  loop: "{{ dotfile_links }}"
+  loop_control: { label: "{{ item.dest }}" }
+
+- name: Link configs and scripts
+  ansible.builtin.file:
+    src: "{{ repo_root }}/{{ item.src }}"
+    dest: "{{ home }}/{{ item.dest }}"
+    state: link
+    force: true
+  loop: "{{ dotfile_links }}"
+  loop_control: { label: "{{ item.dest }}" }
+
+- name: Read statusline host settings
+  ansible.builtin.slurp: { path: "{{ home }}/{{ item.file }}" }
+  loop: "{{ statusline_hosts }}"
+  loop_control: { label: "{{ item.file }}" }
+  register: host_settings
+  failed_when: false
+
+# Only the statusLine key is replaced; the rest of each file is kept as is.
+- name: Enable the statuslines
+  ansible.builtin.copy:
+    dest: "{{ home }}/{{ item.item.file }}"
+    mode: "{{ item.item.mode }}"
+    content: "{{ (item.content | default('e30=') | b64decode | from_json)
+      | combine({'statusLine': item.item.statusLine})
+      | to_nice_json(indent=2, sort_keys=false) }}\n"
+  loop: "{{ host_settings.results }}"
+  loop_control: { label: "{{ item.item.file }}" }
