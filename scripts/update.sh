@@ -74,7 +74,15 @@ fi
 # 3. Update Starship Prompt
 print_step "Updating Starship Prompt..."
 if command -v starship &>/dev/null; then
-    if [ "${EUID}" -eq 0 ]; then
+    STARSHIP_CURRENT="$(starship --version | head -n1 | awk '{print $2}')"
+    # Latest tag from the releases/latest redirect (avoids GitHub API rate limits).
+    # Empty if offline, which falls through to the installer as before.
+    STARSHIP_LATEST="$(curl -sSfIL -o /dev/null -w '%{url_effective}' \
+        https://github.com/starship/starship/releases/latest 2>/dev/null | sed -n 's|.*/tag/v||p')"
+
+    if [ -n "${STARSHIP_LATEST}" ] && [ "${STARSHIP_CURRENT}" = "${STARSHIP_LATEST}" ]; then
+        print_success "Starship prompt is already up to date (${STARSHIP_CURRENT})."
+    elif [ "${EUID}" -eq 0 ]; then
         if curl -sS https://starship.rs/install.sh | sh -s -- -y; then
             print_success "Starship prompt updated successfully."
         else
