@@ -31,6 +31,11 @@ if [ -d "/opt/toolchains/arm-gnu-toolchain-13.2.Rel1-x86_64-arm-none-eabi/bin" ]
     export PATH="$PATH:/opt/toolchains/arm-gnu-toolchain-13.2.Rel1-x86_64-arm-none-eabi/bin"
 fi
 
+# PlatformIO Core (pio)
+if [ -d "$HOME/.platformio/penv/bin" ]; then
+    export PATH="$PATH:$HOME/.platformio/penv/bin"
+fi
+
 # ------------------------------------------------------------------------------
 # 3. Modular Configurations (~/.bashrc.d)
 # ------------------------------------------------------------------------------
